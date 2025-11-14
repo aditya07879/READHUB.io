@@ -1,0 +1,80 @@
+1) Better prompt templates & styles
+
+Why it matters: Your summaries will stop being inconsistent. The model will stop rambling.
+What to implement:
+
+Define 3–4 fixed summary “modes”:
+
+Simple TL;DR (2–3 lines)
+
+Bullet points (3 bullets, max 10 words each)
+
+Explain like I’m 5
+
+Hinglish casual summary
+
+Set strict constraints in every template: “no filler”, “no intro”, “no repeating”, “max X sentences,” etc.
+This instantly levels up output quality without touching backend logic.
+
+2) Token budgeting & model parameters
+
+Why it matters: Prevent token errors + cut cost + speed up response.
+What to implement:
+
+Set maximum output tokens (you don’t need huge outputs to summarize).
+
+Use low temperature (0.1–0.3) for summaries — cleaner and consistent.
+
+For short inputs, skip chunking; for long inputs, enforce chunking.
+
+Decide which model to use for each preset (cheap vs strong model).
+
+This stops random behavior and token waste.
+
+3) Rate limits, quotas & cost controls
+
+Why it matters: Without this your bill explodes and users spam the API.
+What to implement:
+
+Per-user daily cap (e.g., 10 free summaries/day).
+
+Hard limit per IP for anonymous usage.
+
+Reject extremely long inputs unless user is paid tier.
+
+Log token usage per request to monitor cost.
+
+Set quotas in Google Cloud so you can’t accidentally burn money.
+
+This keeps the system under control even if traffic spikes.
+
+4) UI/UX improvements (client-side only)
+
+Why it matters: Users blame your backend when your frontend is bad.
+What to implement:
+
+A dropdown selector for summary style/mode.
+
+A clear loading animation for long texts.
+
+A clean preview box showing the summary with copy button.
+
+Let user edit summary inside UI.
+
+Save history (last 5 summaries) in local storage.
+
+Better UX makes even a basic summarizer look premium.
+
+5) Cost/quality presets for users
+
+Why it matters: Lets you upsell and control model usage smartly.
+What to implement:
+Preset types like:
+
+Fast & Cheap → quick model, short output, small token budget.
+
+Balanced → mid-tier model, moderate tokens.
+
+Detailed → high-tier model, expanded tokens, slower.
+
+User feels in control, you stay in control of costs.

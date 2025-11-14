@@ -1,0 +1,41 @@
+<%- include('partials/head', { title: 'Edit profile' }) %>
+<%- include('partials/nav', { user }) %>
+
+<main class="max-w-3xl mx-auto px-6 py-12">
+  <div class="card p-6 rounded-soft border">
+    <h2 class="text-xl font-semibold mb-4">Edit profile</h2>
+
+    <% if (error) { %>
+      <div class="p-3 mb-4 border rounded text-sm text-red-700 bg-red-50"><%= error %></div>
+    <% } %>
+    <% if (success) { %>
+      <div class="p-3 mb-4 border rounded text-sm text-emerald-700 bg-emerald-50"><%= success %></div>
+    <% } %>
+
+    <form action="/profile/edit" method="POST" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium">Full name</label>
+        <input name="fullname" required value="<%= user?.fullname || '' %>" class="w-full mt-1 px-3 py-2 border rounded" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium">Email</label>
+        <input name="email" type="email" required value="<%= user?.email || '' %>" class="w-full mt-1 px-3 py-2 border rounded" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium">Avatar URL (optional)</label>
+        <input name="profileImageURL" value="<%= user?.profileImageURL || '' %>" class="w-full mt-1 px-3 py-2 border rounded" placeholder="https://..." />
+        <p class="muted text-xs mt-1">Paste an image URL to use as avatar. File upload not enabled in this form.</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button type="submit" class="btn-accent px-4 py-2 rounded">Save changes</button>
+        <a href="/profile" class="px-4 py-2 rounded border text-sm">Cancel</a>
+      </div>
+    </form>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+<%- include('partials/scripts') %>

@@ -1,0 +1,526 @@
+<%- include('partials/head') %>
+<%- include('partials/nav', { user }) %>
+
+<main class="min-h-screen bg-gray-50">
+  <section class="max-w-7xl mx-auto px-6 py-12">
+    <!-- Scene-setting intro -->
+    <header class="text-center max-w-3xl mx-auto mb-8">
+      <h1 class="text-3xl md:text-4xl font-extrabold">Choose how smart your day gets</h1>
+      <p class="mt-2 text-gray-600">Plans designed for quick wins, steady productivity, and power users who never settle. Pick weekly, monthly or yearly — we’ve got your back.</p>
+      <div id="rotator" class="mt-3 text-sm text-slate-500" aria-live="polite">Fast answers for meetings → Clean notes for study → Saved summaries you can actually use.</div>
+    </header>
+
+    <% if (user && user.isSubscriber) { %>
+      <!-- SUBSCRIBER VIEW -->
+      <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow p-6 mb-8">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-semibold">You're on <span class="text-emerald-600">Pro</span> — thanks for supporting us!</h2>
+            <p class="text-sm text-gray-600 mt-1">Your account has unlimited summaries, priority processing and export options. Enjoy the premium experience.</p>
+
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="p-3 border rounded">
+                <div class="text-xs text-gray-500">Summaries</div>
+                <div class="font-semibold text-lg">Unlimited</div>
+              </div>
+              <div class="p-3 border rounded">
+                <div class="text-xs text-gray-500">Priority</div>
+                <div class="font-semibold text-lg">Yes</div>
+              </div>
+              <div class="p-3 border rounded">
+                <div class="text-xs text-gray-500">Exports</div>
+                <div class="font-semibold text-lg">PDF, TXT, CSV</div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex items-center gap-3">
+              <a href="/subscription/manage" class="px-4 py-2 bg-emerald-600 text-white rounded shadow">Manage subscription</a>
+              <a href="/history" class="px-4 py-2 border rounded">View history</a>
+            </div>
+          </div>
+
+          <div class="text-right">
+            <div class="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.9 6.12L21 10l-5 3.64L17.8 21 12 17.77 6.2 21 8 13.64 3 10l6.1-1.88L12 2z" fill="currentColor"/></svg>
+              Pro
+            </div>
+
+            <div class="mt-6 text-sm text-gray-500">
+              Activated: <strong><%= user.planActivatedAt ? new Date(user.planActivatedAt).toLocaleString() : '—' %></strong>
+              <div class="text-xs mt-1">Plan: <strong><%= user.plan || 'Pro' %></strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 text-sm text-gray-600">
+          Tip: Try "Export → PDF" from the summary page to get beautifully formatted notes.
+        </div>
+      </div>
+
+    <% } else { %>
+
+      <!-- Non-subscriber: Pricing UI (original cards) -->
+      <!-- Toggle & anchor -->
+      <div class="flex items-center justify-center gap-6 mb-6">
+        <div class="flex items-center gap-3 text-sm text-gray-600">Billing:</div>
+        <div class="relative inline-flex bg-white border rounded-full p-1" role="tablist" aria-label="Billing frequency toggle">
+          <button class="freq px-4 py-2 rounded-full text-sm" data-period="weekly" aria-pressed="false">Weekly</button>
+          <button class="freq px-4 py-2 rounded-full text-sm" data-period="monthly" aria-pressed="true">Monthly</button>
+          <button class="freq px-4 py-2 rounded-full text-sm" data-period="yearly" aria-pressed="false">Yearly</button>
+          <div id="freqSlider" aria-hidden="true" class="absolute bg-sky-100 rounded-full transition-all" style="width:0; height:36px; left:0; top:1px;"></div>
+        </div>
+        <div class="text-xs text-gray-500">Try weekly if you’re testing — yearly for best value</div>
+      </div>
+
+      <!-- Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4" id="plansGrid">
+        <!-- Weekly -->
+        <article class="plan-card bg-white rounded-2xl shadow-sm p-6 relative" data-plan-id="starter-weekly" data-plan="weekly" tabindex="0" aria-labelledby="weeklyTitle" data-price-weekly="59" data-price-monthly="199" data-price-yearly="999">
+          <div class="flex items-start justify-between">
+            <div>
+              <div id="weeklyBadge" class="text-xs text-amber-600 font-medium">Starter Pack</div>
+              <h3 id="weeklyTitle" class="text-lg font-semibold mt-1">A friendly first step</h3>
+              <p class="text-sm text-gray-500 mt-1">Perfect for curious minds — dip a toe in, no strings.</p>
+            </div>
+            <div class="flex flex-col items-end text-right">
+              <div class="text-xs text-gray-400 line-through" id="weeklyAnchor">₹199 / month</div>
+              <div class="text-2xl font-bold mt-1 price" data-price-weekly="₹59" data-price-monthly="₹199" data-price-yearly="₹999">₹59</div>
+              <div class="text-xs text-gray-500">/ week</div>
+            </div>
+          </div>
+
+          <ul class="mt-4 space-y-2 text-sm text-gray-700">
+            <li>✅ Create unlimited concise summaries for quick wins.</li>
+            <li>🔒 Cancel anytime — risk-free.</li>
+            <li>🔎 Great for trying the tool.</li>
+          </ul>
+
+          <div class="mt-4 flex items-center gap-2">
+            <span class="px-2 py-1 text-xs bg-white border rounded">Best for: first-timers</span>
+          </div>
+
+          <div class="mt-6 flex items-center gap-2">
+            <button class="cta btn-outline flex-1 py-2 rounded" data-action="trial">Try free sample (1 summary)</button>
+            <button class="cta btn-accent py-2 rounded" data-action="buy">Choose</button>
+          </div>
+
+          <div class="absolute top-3 right-3 text-xs text-amber-500 opacity-0 transform scale-90" aria-hidden="true">❤️ Recommended</div>
+        </article>
+
+        <!-- Monthly (center) -->
+        <article class="plan-card bg-white rounded-2xl shadow-md p-6 relative transform scale-100 hover:scale-101 hover:shadow-lg" data-plan-id="pro-monthly" data-plan="monthly" tabindex="0" aria-labelledby="monthlyTitle" data-price-weekly="129" data-price-monthly="149" data-price-yearly="1299">
+          <div class="absolute left-0 top-0 p-1">
+            <div class="ribbon text-xs bg-sky-600 text-white px-3 py-1 rounded-br-lg">Most popular</div>
+          </div>
+
+          <div class="flex items-start justify-between">
+            <div>
+              <div id="monthlyBadge" class="text-xs text-sky-600 font-medium">Pro Pack</div>
+              <h3 id="monthlyTitle" class="text-lg font-semibold mt-1">Your everyday superpower</h3>
+              <p class="text-sm text-gray-500 mt-1">Students, creators, and pros who use AI every day choose this.</p>
+            </div>
+            <div class="flex flex-col items-end text-right">
+              <div class="text-xs text-gray-400 line-through" id="monthlyAnchor">₹249 / month</div>
+              <div class="text-2xl font-bold mt-1 price" data-price-weekly="₹129" data-price-monthly="₹149" data-price-yearly="₹1299">₹149</div>
+              <div class="text-xs text-gray-500">/ month</div>
+            </div>
+          </div>
+
+          <ul class="mt-4 space-y-2 text-sm text-gray-700">
+            <li>⚡ Create unlimited summaries with priority processing.</li>
+            <li>📥 Export & keep your top notes — searchable and downloadable.</li>
+            <li>✅ Verified support & faster queue.</li>
+          </ul>
+
+          <div class="mt-4 flex items-center gap-2">
+            <span class="px-2 py-1 text-xs bg-white border rounded">Best for: students & daily users</span>
+          </div>
+
+          <div class="mt-6 flex items-center gap-2">
+            <button class="cta btn-outline flex-1 py-2 rounded" data-action="trial">Try free sample (1 summary)</button>
+            <button class="cta btn-primary py-2 rounded" data-action="buy">Get Pro</button>
+          </div>
+
+          <div class="mt-3 text-xs text-gray-400">“Saved me 6 hours/week — Aditi, product designer”</div>
+        </article>
+
+        <!-- Yearly -->
+        <article class="plan-card bg-white rounded-2xl shadow-sm p-6 relative" data-plan-id="ultimate-yearly" data-plan="yearly" tabindex="0" aria-labelledby="yearlyTitle" data-price-weekly="499" data-price-monthly="499" data-price-yearly="999">
+          <div class="flex items-start justify-between">
+            <div>
+              <div id="yearlyBadge" class="text-xs text-emerald-600 font-medium">Ultimate Pack</div>
+              <h3 id="yearlyTitle" class="text-lg font-semibold mt-1">Built for the committed creator</h3>
+              <p class="text-sm text-gray-500 mt-1">Everything unlocked. Built for people who make things that matter.</p>
+            </div>
+            <div class="flex flex-col items-end text-right">
+              <div class="text-xs text-gray-400">Save 30%</div>
+              <div class="text-2xl font-bold mt-1 price" data-price-weekly="₹499" data-price-monthly="₹499" data-price-yearly="₹999">₹999</div>
+              <div class="text-xs text-gray-500">/ year <span class="block">(~₹83 / mo)</span></div>
+            </div>
+          </div>
+
+          <ul class="mt-4 space-y-2 text-sm text-gray-700">
+            <li>🚀 Everything in Pro, plus priority support & team-ish features.</li>
+            <li>💾 Keep more summaries and export multiple files.</li>
+            <li>🏷 7-day money-back guarantee.</li>
+          </ul>
+
+          <div class="mt-4 flex items-center gap-2">
+            <span class="px-2 py-1 text-xs bg-white border rounded">Best for: teams & power users</span>
+          </div>
+
+          <div class="mt-6 flex items-center gap-2">
+            <button class="cta btn-outline flex-1 py-2 rounded" data-action="trial">Try free sample (1 summary)</button>
+            <button class="cta btn-accent py-2 rounded" data-action="buy">Save & subscribe</button>
+          </div>
+        </article>
+      </div>
+
+      <!-- Compare row & promo drawer -->
+      <div class="bg-white rounded-md shadow-sm p-4 mb-6">
+        <div class="flex items-center justify-between">
+          <button id="compareToggle" class="text-sm text-sky-600">Compare plans</button>
+          <div>
+            <button id="promoToggle" class="text-sm">Have a promo code?</button>
+          </div>
+        </div>
+
+        <div id="compareRow" class="mt-4 hidden overflow-auto">
+          <table class="w-full text-sm">
+            <thead class="text-left text-xs text-gray-500"><tr><th>Feature</th><th>Weekly</th><th>Monthly</th><th>Yearly</th></tr></thead>
+            <tbody>
+              <tr><td class="py-2">Daily limit</td><td>Small</td><td>Generous</td><td>Unlimited</td></tr>
+              <tr><td class="py-2">Speed</td><td>Standard</td><td>Priority</td><td>Priority</td></tr>
+              <tr><td class="py-2">Storage</td><td>Minimal</td><td>200 summaries</td><td>Unlimited</td></tr>
+              <tr><td class="py-2">Support</td><td>Email</td><td>Verified support</td><td>Priority support</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="promoDrawer" class="mt-4 hidden">
+          <div class="flex gap-2 items-center">
+            <input id="promoInput" class="border rounded px-3 py-2" placeholder="Enter promo code" />
+            <button id="applyPromo" class="px-3 py-2 btn-accent rounded">Apply</button>
+          </div>
+          <div id="promoResult" class="text-xs text-gray-500 mt-2"></div>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- Social proof & counters -->
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-md shadow-sm mb-6">
+      <div class="text-sm text-gray-600">Trusted by <strong id="counterUsers">0</strong> people this month</div>
+      <div class="text-sm text-gray-600">Average response time: <strong>1.8 hours</strong></div>
+      <div class="text-sm text-gray-600">98% positive feedback</div>
+    </div>
+
+    <!-- Micro-quiz chip -->
+    <div class="bg-white rounded-md p-4 shadow-sm">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-sm font-semibold">Not sure which plan?</div>
+          <div class="text-xs text-gray-500">3 quick questions to recommend the best plan</div>
+        </div>
+        <button id="quizBtn" class="px-3 py-2 border rounded">Take the mini-quiz</button>
+      </div>
+    </div>
+
+    <!-- FAQ & footer small notes -->
+    <div class="mt-6 text-xs text-gray-500">
+      <div class="mb-2">Satisfaction guarantee: <strong>7-day money-back</strong></div>
+      <div class="mb-2">Payment methods: UPI • Card • GPay • Apple Pay</div>
+      <div>Billing is secure. <a href="#" id="billingFaq" class="text-sky-600">How billing works</a></div>
+    </div>
+  </section>
+
+  <!-- Quiz Modal -->
+  <div id="quizModal" class="fixed inset-0 bg-black/30 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg w-[95%] max-w-md p-6">
+      <h3 class="font-semibold">Quick Quiz</h3>
+      <form id="quizForm" class="mt-4 space-y-4">
+        <div>
+          <label class="text-xs">How often will you summarize?</label>
+          <select id="q1" class="w-full border rounded p-2"><option>Daily</option><option>Weekly</option><option>Rarely</option></select>
+        </div>
+        <div>
+          <label class="text-xs">Do you need exports & multi-file support?</label>
+          <select id="q2" class="w-full border rounded p-2"><option>Yes</option><option>No</option></select>
+        </div>
+        <div>
+          <label class="text-xs">Comfortable with annual billing?</label>
+          <select id="q3" class="w-full border rounded p-2"><option>Yes</option><option>No</option></select>
+        </div>
+        <div class="flex items-center gap-2 justify-end">
+          <button type="button" id="quizClose" class="px-3 py-2 border rounded">Close</button>
+          <button type="submit" class="px-3 py-2 btn-accent rounded">Get recommendation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Billing FAQ Modal -->
+  <div id="billingModal" class="fixed inset-0 bg-black/30 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg w-[95%] max-w-lg p-6">
+      <h3 class="font-semibold">How billing works</h3>
+      <div class="mt-3 text-sm text-gray-600">
+        <ul class="list-disc list-inside">
+          <li>Auto-renews on the chosen billing interval.</li>
+          <li>Cancel anytime — refunds per policy.</li>
+          <li>Receipts emailed to you immediately after purchase.</li>
+        </ul>
+      </div>
+      <div class="mt-4 text-right"><button id="closeBilling" class="px-3 py-2 border rounded">Close</button></div>
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+<%- include('partials/scripts') %>
+
+<!-- Razorpay checkout script (kept for non-subscriber flows) -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+/* Pricing UI + Razorpay integration (Option B: frontend verifies immediately)
+   The script below is the same as your original; it works for both views.
+   It only attaches buy handlers to elements that exist (non-subscriber view).
+*/
+(function(){
+  const slider = document.getElementById('freqSlider');
+  const freqBtns = Array.from(document.querySelectorAll('.freq'));
+  const plans = Array.from(document.querySelectorAll('.plan-card'));
+  const counterUsers = document.getElementById('counterUsers');
+  const compareToggle = document.getElementById('compareToggle');
+  const compareRow = document.getElementById('compareRow');
+  const promoToggle = document.getElementById('promoToggle');
+  const promoDrawer = document.getElementById('promoDrawer');
+  const promoInput = document.getElementById('promoInput');
+  const applyPromo = document.getElementById('applyPromo');
+  const promoResult = document.getElementById('promoResult');
+  const quizBtn = document.getElementById('quizBtn');
+  const quizModal = document.getElementById('quizModal');
+  const quizForm = document.getElementById('quizForm');
+  const billingFaq = document.getElementById('billingFaq');
+  const billingModal = document.getElementById('billingModal');
+
+  // initialize slider position
+  function updateSlider(activeBtn){
+    if(!activeBtn) return;
+    const rect = activeBtn.getBoundingClientRect();
+    const parentRect = activeBtn.parentElement.getBoundingClientRect();
+    slider.style.width = rect.width + 'px';
+    slider.style.left = (rect.left - parentRect.left) + 'px';
+  }
+
+  function setPeriod(period){
+    freqBtns.forEach(b=>{ b.setAttribute('aria-pressed', b.dataset.period===period); });
+    // update visible prices
+    plans.forEach(p => {
+      const priceEl = p.querySelector('.price');
+      if(!priceEl) return;
+      const text = priceEl.getAttribute('data-price-' + period);
+      priceEl.textContent = text;
+      const unit = p.querySelector('div.text-xs');
+      if(unit) unit.textContent = (period==='weekly' ? '/ week' : period==='monthly' ? '/ month' : '/ year');
+    });
+  }
+
+  if (freqBtns.length) {
+    freqBtns.forEach(b => b.addEventListener('click', ()=>{ updateSlider(b); setPeriod(b.dataset.period); }));
+    const initial = document.querySelector('.freq[data-period="monthly"]');
+    updateSlider(initial); setPeriod('monthly');
+  }
+
+  // compare
+  if (compareToggle && compareRow) compareToggle.addEventListener('click', ()=> compareRow.classList.toggle('hidden'));
+
+  // promo drawer
+  if (promoToggle && promoDrawer) {
+    promoToggle.addEventListener('click', ()=> promoDrawer.classList.toggle('hidden'));
+    applyPromo.addEventListener('click', ()=> {
+      const code = promoInput.value.trim().toUpperCase();
+      if(!code){ promoResult.textContent = 'Enter a code.'; return; }
+      if(code === 'EARLY20'){ promoResult.textContent = '20% applied — price updated at checkout.'; } else { promoResult.textContent = 'Invalid or expired promo code.'; }
+    });
+  }
+
+  // counters (animate on scroll into view)
+  let usersCounted = false;
+  function animateCounters(){
+    if(usersCounted) return;
+    const el = counterUsers;
+    if(!el) return;
+    const rect = el.getBoundingClientRect();
+    if(rect.top < window.innerHeight){ usersCounted = true; let v=0; const target = 12431; const step = Math.ceil(target/60); const iv = setInterval(()=>{ v = Math.min(target, v+step); el.textContent = v.toLocaleString(); if(v>=target) clearInterval(iv); }, 20); }
+  }
+  window.addEventListener('scroll', animateCounters); animateCounters();
+
+  // quiz modal
+  if (quizBtn) {
+    quizBtn.addEventListener('click', ()=> quizModal.classList.remove('hidden'));
+    document.getElementById('quizClose').addEventListener('click', ()=> quizModal.classList.add('hidden'));
+    quizForm.addEventListener('submit', (e)=> {
+      e.preventDefault();
+      const a = document.getElementById('q1').value;
+      const b = document.getElementById('q2').value;
+      const c = document.getElementById('q3').value;
+      let rec = 'Monthly';
+      if(a==='Daily' && b==='Yes') rec = 'Monthly';
+      if(a==='Daily' && b==='Yes' && c==='Yes') rec = 'Yearly';
+      if(a==='Rarely') rec = 'Weekly';
+      alert('Recommendation: ' + rec + ' — highlighting the matching plan.');
+      plans.forEach(p=> p.classList.toggle('ring-2 ring-sky-200', p.dataset.plan.toLowerCase()===rec.toLowerCase()));
+      quizModal.classList.add('hidden');
+    });
+  }
+
+  // promo: trial behavior (placeholder)
+  document.querySelectorAll('[data-action="trial"]').forEach(b => b.addEventListener('click', ()=> alert('Opening trial sample generator...')));
+
+  // Accessibility: keyboard plan focus triggers
+  plans.forEach(p=> p.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' ') p.querySelector('[data-action="buy"]')?.click(); }));
+
+  // Billing faq modal
+  if (billingFaq) billingFaq.addEventListener('click', (e)=>{ e.preventDefault(); billingModal.classList.remove('hidden'); });
+  const closeBilling = document.getElementById('closeBilling');
+  if (closeBilling) closeBilling.addEventListener('click', ()=> billingModal.classList.add('hidden'));
+
+  // PAYMENT: Razorpay integration - only attach handlers if buy buttons exist
+  async function createOrder(payload){
+    const res = await fetch('/payments/create-order', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  }
+
+  async function verifyPayment(payload){
+    const res = await fetch('/payments/verify', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  }
+
+  function openRazorpay(order, key, planName){
+    return new Promise((resolve, reject) => {
+      try {
+        const options = {
+          key: key,
+          amount: order.amount,
+          currency: order.currency || 'INR',
+          name: 'Your App Name',
+          description: planName || 'Subscription',
+          order_id: order.id,
+          prefill: {
+            name: '<%= user ? (user.fullname || user.email) : "" %>',
+            email: '<%= user ? user.email : "" %>'
+          },
+          handler: function(response){
+            resolve(response);
+          },
+          modal: {
+            ondismiss: function(){ reject(new Error('checkout_dismissed')); }
+          }
+        };
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  function readPlanFromButton(btn){
+    const card = btn.closest('.plan-card');
+    if(!card) return null;
+    const planId = card.getAttribute('data-plan-id') || card.getAttribute('id') || 'plan';
+    const active = document.querySelector('.freq[aria-pressed="true"]');
+    const period = active ? active.dataset.period : 'monthly';
+    const amountAttr = card.getAttribute('data-price-' + period) || card.dataset['price' + period] || card.querySelector('.price')?.getAttribute('data-price-' + period);
+    let amount = 0;
+    if(amountAttr) amount = parseFloat(String(amountAttr).replace(/[^\d.]/g,'')) || 0;
+    else {
+      const priceEl = card.querySelector('.price');
+      if(priceEl) amount = parseFloat(priceEl.textContent.replace(/[^\d.]/g,'')) || 0;
+    }
+    const planName = card.querySelector('h3')?.textContent?.trim() || planId;
+    return { planId, amount, planName, period };
+  }
+
+  async function onBuyClick(e){
+    e.preventDefault();
+    const btn = e.currentTarget;
+    const plan = readPlanFromButton(btn);
+    if(!plan){ alert('Could not determine plan.'); return; }
+    if(!(plan.amount > 0)){ alert('Invalid plan amount'); return; }
+
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Processing...';
+
+    try {
+      // 1) create order on server
+      const createResp = await createOrder({ planId: plan.planId, amount: plan.amount, planName: plan.planName, period: plan.period });
+      if(!createResp || !createResp.ok || !createResp.order){ alert('Could not create order. Try again.'); btn.disabled=false; btn.textContent=originalText; return; }
+      const order = createResp.order;
+      const key = createResp.key;
+
+      // 2) open razorpay checkout
+      let rzpResp;
+      try {
+        rzpResp = await openRazorpay(order, key, plan.planName);
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        return;
+      }
+
+      // 3) verify the payment server-side
+      const verifyResp = await verifyPayment({
+        razorpay_payment_id: rzpResp.razorpay_payment_id,
+        razorpay_order_id: rzpResp.razorpay_order_id,
+        razorpay_signature: rzpResp.razorpay_signature,
+        planId: plan.planId,
+        planName: plan.planName,
+        period: plan.period
+      });
+
+      if(verifyResp && verifyResp.ok){
+        // reload to reflect subscription state
+        window.location.reload();
+      } else {
+        alert('Payment verification failed. If money was charged, webhook will update your account shortly.');
+        window.location.reload();
+      }
+    } catch (err) {
+      alert('Payment failed. Try again.');
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  }
+
+  // attach buy handlers (only exist for non-subscribers)
+  document.querySelectorAll('[data-action="buy"]').forEach(b => {
+    b.addEventListener('click', onBuyClick);
+  });
+
+  // rest of UI already wired earlier (trial, promo, etc.)
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){ document.body.classList.add('reduced-motion'); }
+})();
+</script>
+
+<style>
+/* Small visual helpers */
+.plan-card:hover .ribbon{ transform: translateY(-2px); }
+.hover\:scale-102:hover{ transform: scale(1.02); }
+.hover\:scale-101:hover{ transform: scale(1.01); }
+.btn-accent{ background: linear-gradient(90deg,#0ea5e9,#7c3aed); color:white; }
+.btn-primary{ background:#0ea5e9; color:white; }
+.btn-outline{ border:1px solid #e5e7eb; background:white; }
+.reduced-motion *{ transition:none !important; animation:none !important; }
+</style>

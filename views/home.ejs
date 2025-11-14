@@ -1,0 +1,423 @@
+<%- include('partials/head') %>
+<%- include('partials/nav', { user }) %>
+
+<main class="max-w-6xl mx-auto px-6 py-12">
+  <section class="relative overflow-hidden rounded-soft p-8 md:p-16 mb-8" style="background: linear-gradient(120deg,#f8fafc 0%,#eef2ff 45%,#ffffff 100%);">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+      <div class="lg:pr-8">
+        <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mb-3">Turn any document into clear, concise notes — instantly.</h1>
+        <p class="muted text-lg md:text-xl mb-6">Upload PDFs, images, webpages, or paste text. Get fast AI-powered summaries, notes, and Q&amp;A — ready to export.</p>
+
+        <div class="flex gap-3 items-center mb-5">
+          <% if (user && user.isSubscriber) { %>
+            <a href="/api/summarize-file" class="px-6 py-3 rounded-lg text-base font-semibold inline-flex items-center gap-3 btn-premium" style="background:linear-gradient(90deg,#7c3aed,#06b6d4);color:#fff;box-shadow:0 6px 18px rgba(99,102,241,0.18);">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M11 17a1 1 0 01-.894.553L9 17h2zM6 3a1 1 0 00-1 1v8a1 1 0 00.293.707l5 5a1 1 0 001.414 0l5-5A1 1 0 0017 12V4a1 1 0 00-1-1H6z"/></svg>
+              Premium Workspace
+            </a>
+          <% } else { %>
+            <a href="/api/summarize-file" class="btn-brand px-6 py-3 rounded-lg text-base font-semibold shadow-md">Try For Free</a>
+            <a href="/pricing" class="btn-accent px-5 py-3 rounded-lg text-base font-medium border">View Plans</a>
+          <% } %>
+        </div>
+
+        <div class="flex items-center gap-4 text-sm muted">
+          <div class="inline-flex items-center gap-2">
+            <svg class="w-5 h-5 text-green-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M16.707 5.293a1 1 0 010 1.414L8.414 15l-4.121-4.121a1 1 0 011.414-1.414L8.414 12.586 15.293 5.707a1 1 0 011.414 0z"/></svg>
+            <span>Trusted by students & professionals</span>
+          </div>
+          <div class="h-4 border-l border-gray-300"></div>
+          <div class="inline-flex items-center gap-2">
+            <strong class="text-black">12k+</strong>
+            <span class="muted">summaries delivered</span>
+          </div>
+        </div>
+
+        <div id="mobile-cta" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[92%] md:hidden">
+          <div class="flex gap-3 justify-center items-center bg-white p-3 rounded-full shadow-lg">
+            <% if (user && user.isSubscriber) { %>
+              <a href="/api/summarize-file" class="flex-1 text-center px-4 py-2 rounded-full btn-premium" style="background:linear-gradient(90deg,#7c3aed,#06b6d4);color:#fff;font-weight:600;">Open Premium</a>
+            <% } else { %>
+              <a href="/api/summarize-file" class="flex-1 text-center px-4 py-2 rounded-full btn-brand">Try Free</a>
+              <a href="/pricing" class="px-4 py-2 rounded-full border btn-accent">Plans</a>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative">
+        <div class="card p-4 md:p-6 rounded-soft shadow-sm border">
+          <div class="relative w-full h-64 md:h-72 rounded-md overflow-hidden border shadow-sm">
+            <div class="absolute inset-0 z-0">
+              <video src="/videos/preview-loop.mp4" autoplay loop muted playsinline preload="auto" class="w-full h-full object-cover" aria-hidden="true"></video>
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/30 to-white/80 z-10 pointer-events-none"></div>
+            <div class="relative z-20 flex flex-col justify-between h-full p-4">
+              <div class="flex justify-between items-start">
+                <div>
+                  <div class="h-3 w-32 bg-gray-200 rounded mb-2"></div>
+                  <div class="h-2 w-20 bg-gray-200 rounded"></div>
+                </div>
+                <div class="text-xs muted">AI • Live</div>
+              </div>
+              <div class="text-sm text-gray-700 font-medium mt-auto">
+                <div class="flex items-center gap-2">
+                  <span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  Generating summary in real-time...
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="absolute -right-8 -top-6 w-40 h-40 rounded-full opacity-30 blur-3xl" style="background: linear-gradient(45deg,#c7d2fe,#e0f2fe)"></div>
+      </div>
+    </div>
+
+    <script>
+      (function(){
+        const lines = document.querySelectorAll(".preview-line");
+        const timeEl = document.getElementById("preview-time");
+        function animate(){
+          if(lines && lines.length){
+            lines.forEach((l,i)=> l.style.width = (60 + Math.abs(Math.sin(Date.now()/500 + i))*40) + "%");
+          }
+          if(timeEl){
+            const t = (1 + Math.abs(Math.sin(Date.now()/800))*1.5).toFixed(1);
+            timeEl.textContent = t + "s";
+          }
+          requestAnimationFrame(animate);
+        }
+        animate();
+        const mob = document.getElementById("mobile-cta");
+        function handleResize(){ if(window.innerWidth>=768) mob.style.display='none'; else mob.style.display='block'; }
+        handleResize();
+        window.addEventListener('resize', handleResize);
+      })();
+    </script>
+  </section>
+
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mb-12">
+    <div>
+      <div id="quick-upload" class="card p-6 rounded-soft border h-full flex flex-col justify-between">
+        <div>
+          <h3 class="font-semibold text-lg mb-2">Quick Upload</h3>
+          <p class="muted text-sm mb-4">Drag & drop PDF / image here, or click to upload. We'll auto-extract the text and summarize it.</p>
+
+          <form id="upload-form" action="/api/summarize-file" method="POST" enctype="multipart/form-data" class="border-dashed border-2 border-gray-200 rounded p-6 text-center">
+            <div id="drop-area" class="py-6">
+              <svg class="mx-auto mb-2 w-10 h-10 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v9"/></svg>
+              <div class="muted mb-3">Drop files here</div>
+              <input id="file-input" name="file" type="file" accept="application/pdf,image/*,.txt,.docx" class="hidden" />
+              <button type="button" id="choose-file" class="btn-accent px-4 py-2 rounded">Choose file</button>
+            </div>
+
+            <div class="mt-4 flex gap-3 justify-center">
+              <select name="mode" class="p-2 rounded border">
+                <option value="short">Short</option>
+                <option value="medium" selected>Medium</option>
+                <option value="long">Long</option>
+              </select>
+              <button type="submit" class="btn-brand px-4 py-2 rounded">Summarize file</button>
+            </div>
+          </form>
+
+          <p class="text-xs muted mt-3">Supported: PDF, PNG/JPEG, TXT, DOCX. Max 20 MB/file.</p>
+        </div>
+
+        <div class="mt-6 text-sm muted"><strong>Pro tip:</strong> Upload lecture PDFs for quick study notes. Use "Detailed" for research papers.</div>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <div class="grid grid-cols-1 gap-4">
+        <div class="card p-4 rounded-soft border flex items-start gap-4">
+          <div class="w-12 h-12 flex items-center justify-center rounded-full bg-slate-50">
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3h12v2H4zM4 9h12v2H4zM4 15h8v2H4z"/></svg>
+          </div>
+          <div>
+            <h4 class="font-semibold">Lightning speed</h4>
+            <div class="muted text-sm">Results in seconds with prioritized queues for paid users.</div>
+          </div>
+        </div>
+
+        <div class="card p-4 rounded-soft border flex items-start gap-4">
+          <div class="w-12 h-12 flex items-center justify-center rounded-full bg-slate-50">
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 100 16 8 8 0 000-16z"/></svg>
+          </div>
+          <div>
+            <h4 class="font-semibold">Smart & concise</h4>
+            <div class="muted text-sm">Transformer-based models tuned for clarity and relevance.</div>
+          </div>
+        </div>
+
+        <div class="card p-4 rounded-soft border flex items-start gap-4">
+          <div class="w-12 h-12 flex items-center justify-center rounded-full bg-slate-50">
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3h10v2H5zM5 7h10v2H5zM5 11h6v2H5z"/></svg>
+          </div>
+          <div>
+            <h4 class="font-semibold">Export & reuse</h4>
+            <div class="muted text-sm">Export to PDF/DOCX or copy to clipboard for instant reuse.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-4 rounded-soft border flex justify-between items-center">
+        <div class="text-center">
+          <div class="text-2xl font-bold" data-target="12000">0</div>
+          <div class="muted text-sm">Summaries</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold" data-target="99">0</div>
+          <div class="muted text-sm">% Uptime</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold" data-target="8">0</div>
+          <div class="muted text-sm">Sec avg</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <div class="card p-4 rounded-soft border">
+        <h4 class="font-semibold mb-3">What people say</h4>
+        <div id="testimonials" class="space-y-3 text-sm">
+          <blockquote class="italic">“Saved me hours of note-taking — concise and accurate.”<div class="mt-2 muted">— Priya, student</div></blockquote>
+          <blockquote class="italic hidden">“Great for meeting recaps and research.”<div class="mt-2 muted">— Arjun, analyst</div></blockquote>
+          <blockquote class="italic hidden">“Export feature is a lifesaver.”<div class="mt-2 muted">— Neha, PM</div></blockquote>
+        </div>
+      </div>
+
+      <div class="card p-4 rounded-soft border">
+        <h4 class="font-semibold mb-2">Get early access & updates</h4>
+        <form id="newsletter-form" action="/subscribe" method="POST" class="flex gap-3">
+          <input name="email" type="email" placeholder="you@domain.com" required class="flex-1 p-2 rounded border" />
+          <button class="btn-brand px-4 py-2 rounded">Join</button>
+        </form>
+        <p class="text-xs muted mt-2">We send product updates and study tips. No spam.</p>
+      </div>
+
+      <div class="card p-4 rounded-soft border">
+        <h4 class="font-semibold mb-2">Roadmap — next</h4>
+        <ul class="text-sm muted list-inside list-decimal space-y-1">
+          <li>Real-time collaboration on summaries</li>
+          <li>Customizable templates & exports</li>
+          <li>Study flashcard generator</li>
+        </ul>
+        <div class="mt-3 text-sm"><a href="/roadmap" class="underline">Full roadmap</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="mt-8 py-16 border-t">
+    <h2 class="text-3xl font-bold mb-8 text-center">Recommended Pricing Plans for Your AI Service</h2>
+
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+      <div class="card p-6 rounded-soft border">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-xl">Weekly — Starter Pack</h3>
+          <span class="text-sm px-2 py-1 rounded-md bg-blue-50 text-blue-700">Recommended</span>
+        </div>
+        <p class="muted mb-4">Price: <strong>₹49 / week</strong></p>
+        <ul class="text-sm list-inside list-disc space-y-2 mb-4 muted">
+          <li>Daily <strong>10</strong> AI summaries</li>
+          <li>PDF / Image / Webpage summary support</li>
+          <li>Basic Chat AI (single model)</li>
+          <li>Normal queue speed</li>
+          <li>Save up to <strong>10</strong> summaries</li>
+        </ul>
+        <p class="text-sm mb-4"><strong>Why this works:</strong> low commitment — good for first-time users; priced to give you weekly conversion revenue.</p>
+        <form action="/pricing" method="get"><button type="submit" class="w-full px-6 py-2 rounded-lg btn-brand">Subscribe ₹49 / week</button></form>
+      </div>
+
+      <div class="card p-6 rounded-soft border-2 border-orange-200">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-xl">Monthly — Pro Pack</h3>
+          <span class="text-sm px-2 py-1 rounded-md bg-orange-50 text-orange-800">Most Popular</span>
+        </div>
+        <p class="muted mb-4">Price: <strong>₹149 / month</strong></p>
+        <ul class="text-sm list-inside list-disc space-y-2 mb-4 muted">
+          <li>Unlimited AI summaries</li>
+          <li>Advanced Chat AI (higher accuracy)</li>
+          <li>Priority queue (faster responses)</li>
+          <li>Multi-file: PDF, Image, Notes, PPT, Websites</li>
+          <li>Export to PDF / DOCX</li>
+          <li>AI rewrite / improve / multiple summary modes</li>
+        </ul>
+        <p class="text-sm mb-4"><strong>Why this works:</strong> predictable monthly recurring revenue + strong value signal for students and regular users.</p>
+        <form action="/pricing" method="get"><button type="submit" class="w-full px-6 py-2 rounded-lg btn-brand">Subscribe ₹149 / month</button></form>
+      </div>
+
+      <div class="card p-6 rounded-soft border">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-xl">Yearly — Ultimate Pack</h3>
+          <span class="text-sm px-2 py-1 rounded-md bg-yellow-50 text-yellow-800">Best Value</span>
+        </div>
+        <p class="muted mb-4">Price: <strong>₹999 / year</strong><span class="text-xs muted"> (~₹83 / month)</span></p>
+        <ul class="text-sm list-inside list-disc space-y-2 mb-4 muted">
+          <li>Everything in Monthly plan</li>
+          <li>Faster AI model & smarter responses</li>
+          <li>Priority 1 speed (fastest)</li>
+          <li>Unlimited storage of summaries</li>
+          <li>Custom templates (notes, reports, slides)</li>
+        </ul>
+        <p class="text-sm mb-4"><strong>Why this works:</strong> upfront annual revenue and higher user retention — best for heavy users and pros.</p>
+        <form action="/pricing" method="get"><button type="submit" class="w-full px-6 py-2 rounded-lg btn-brand">Subscribe ₹999 / year</button></form>
+      </div>
+    </div>
+
+    <div class="mt-10 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-sm">
+      <div class="p-3 rounded border muted"><strong>Weekly — Starter</strong><br/>Try AI features with limited access. ₹49/week</div>
+      <div class="p-3 rounded border muted"><strong>Monthly — Pro</strong><br/>Unlimited summaries + fast AI + export tools. ₹149/month</div>
+      <div class="p-3 rounded border muted"><strong>Yearly — Ultimate</strong><br/>All features unlocked + fastest AI. Best value. ₹999/year</div>
+    </div>
+  </section>
+
+  <section id="contact" class="mt-12 py-16 border-t">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+      <div>
+        <h2 class="text-3xl font-bold mb-2">How can we help?</h2>
+        <p class="muted mb-6">We usually reply within 24 hours. Priority support for Pro & Ultimate users.</p>
+
+        <div class="card p-6 rounded-soft mb-6 border">
+          <form id="contact-form" action="/contact/send" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <input name="name" required placeholder="Full name" class="p-3 rounded border w-full" />
+              <input name="email" type="email" required placeholder="Email address" class="p-3 rounded border w-full" />
+            </div>
+
+            <div><select name="subject" required class="p-3 rounded border w-full"><option value="">Select subject</option><option>Billing</option><option>Bug</option><option>Feature Request</option><option>Other</option></select></div>
+
+            <div><textarea name="message" required placeholder="Tell us what's up (short & to the point)" rows="5" class="p-3 rounded border w-full"></textarea></div>
+
+            <div class="flex items-center gap-3">
+              <label class="text-sm muted">Attach screenshot (optional):</label>
+              <input name="screenshot" type="file" accept="image/*,.png,.jpg,.jpeg,.pdf" class="text-sm" />
+            </div>
+
+            <div><button type="submit" class="btn-brand px-6 py-2 rounded-lg">Send Message</button><span id="contact-status" class="ml-3 text-sm muted"></span></div>
+          </form>
+        </div>
+
+        <div class="mb-6 text-sm muted">
+          <p><strong>Email:</strong> <a href="mailto:adityatomar07879@gmail.com" class="text-blue-600 underline">adityatomar07879@gmail.com</a></p>
+          <p class="mt-1"><strong>Response time:</strong> 24–48 hours (Priority for paid users)</p>
+        </div>
+
+        <div class="card p-4 rounded-soft border">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold">Top FAQs</h3>
+            <input id="faq-search" placeholder="Search FAQs..." class="p-2 rounded border text-sm" />
+          </div>
+
+          <div id="faq-list" class="space-y-3 text-sm">
+            <details class="p-3 border rounded"><summary class="font-medium">How to export summaries?</summary><div class="mt-2 muted">Open a summary → click Export → choose PDF or DOCX. You can also copy to clipboard.</div></details>
+            <details class="p-3 border rounded"><summary class="font-medium">Which file types are supported?</summary><div class="mt-2 muted">PDF, PNG/JPEG images, plain text, PPTX (converted), and URLs/webpages.</div></details>
+            <details class="p-3 border rounded"><summary class="font-medium">How does billing work?</summary><div class="mt-2 muted">Monthly and yearly plans auto-renew. Cancel anytime from Settings → Billing.</div></details>
+            <details class="p-3 border rounded"><summary class="font-medium">Is my data private?</summary><div class="mt-2 muted">Yes — summaries are private by default. See Privacy in Settings for retention and export controls.</div></details>
+          </div>
+        </div>
+
+        <div class="mt-4 text-sm"><a href="/status" class="underline">System status & bug reports</a></div>
+      </div>
+
+      <div>
+        <div class="card p-6 rounded-soft border mb-6">
+          <h3 class="font-semibold mb-2">Need instant help?</h3>
+          <p class="muted mb-4">Use the chat bubble at the bottom-right for quick answers — or send us a message and we’ll reply soon.</p>
+
+          <div class="grid grid-cols-1 gap-3">
+            <div class="p-3 rounded border"><strong>Support Email</strong><div class="muted text-sm">adityatomar07879</div></div>
+            <div class="p-3 rounded border"><strong>Community</strong><div class="muted text-sm">Join our Discord / Telegram for tips and announcements.</div></div>
+            <div class="p-3 rounded border"><strong>Office (optional)</strong><div class="muted text-sm">123 Product St, City, Country</div></div>
+          </div>
+        </div>
+
+        <% if (user && user.isSubscriber) { %>
+          <div class="card p-4 rounded-soft border text-center bg-emerald-50">
+            <h4 class="font-semibold text-emerald-700">Priority Support</h4>
+            <p class="muted mb-4 text-emerald-600">You have Pro support — we reply faster and prioritise your requests.</p>
+            <div class="flex items-center justify-center gap-3">
+              <a href="/subscription/manage" class="px-4 py-2 rounded-lg border border-emerald-200 bg-white text-emerald-700">Manage subscription</a>
+              <a href="/contact" class="btn-accent px-4 py-2 rounded-lg">Contact Priority Support</a>
+            </div>
+            <div class="text-xs text-gray-500 mt-3">Reference: <strong><%= user.lastPayment?.paymentId || '—' %></strong></div>
+          </div>
+        <% } else { %>
+          <div class="card p-4 rounded-soft border text-center">
+            <h4 class="font-semibold">Priority Support</h4>
+            <p class="muted mb-4">Available to Pro and Ultimate users.</p>
+            <a href="#pricing" class="btn-accent px-4 py-2 rounded-lg">Upgrade</a>
+          </div>
+        <% } %>
+
+        <div id="live-chat" class="fixed right-5 bottom-6 z-50">
+          <button id="chat-toggle" class="w-14 h-14 rounded-full shadow-lg flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+            <svg class="w-6 h-6" viewBox="0 0 20 20" fill="currentColor"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H7l-5 3V5z"/></svg>
+          </button>
+
+          <div id="chat-panel" class="hidden mt-2 w-80 bg-white p-3 rounded-lg shadow-lg border">
+            <div class="flex items-center justify-between mb-2"><strong>Support</strong><button id="close-chat" class="text-sm muted">✕</button></div>
+            <div class="text-sm muted mb-3">Hi — type your question or use the contact form for attachments.</div>
+            <input id="chat-input" placeholder="Ask a quick question..." class="p-2 rounded border w-full text-sm" />
+            <div class="mt-2 text-right"><button id="chat-send" class="px-3 py-1 rounded btn-brand text-sm">Send</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('partials/footer') %>
+
+<script>
+  (function(){
+    const drop = document.getElementById('drop-area');
+    const fileInput = document.getElementById('file-input');
+    const choose = document.getElementById('choose-file');
+    if (drop && fileInput && choose) {
+      choose.addEventListener('click', ()=> fileInput.click());
+      ['dragenter','dragover'].forEach(ev=> drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add('bg-slate-50'); }));
+      ['dragleave','drop'].forEach(ev=> drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.remove('bg-slate-50'); }));
+      drop.addEventListener('drop', e=> { const files = e.dataTransfer.files; if(files && files.length) fileInput.files = files; });
+    }
+
+    const tcontainer = document.getElementById('testimonials');
+    if (tcontainer) {
+      const blocks = Array.from(tcontainer.querySelectorAll('blockquote'));
+      let i=0;
+      setInterval(()=> { blocks.forEach((b,idx)=> b.classList.toggle('hidden', idx!==i)); i=(i+1)%blocks.length; }, 3800);
+    }
+
+    const counters = document.querySelectorAll('[data-target]');
+    counters.forEach(el=>{
+      const target = +el.getAttribute('data-target');
+      let current = 0;
+      const step = Math.max(1, Math.floor(target/80));
+      const id = setInterval(()=> {
+        current += step;
+        if (current >= target) { el.textContent = target; clearInterval(id); } else el.textContent = current;
+      }, 20);
+    });
+
+    const toggle = document.getElementById('chat-toggle');
+    const panel = document.getElementById('chat-panel');
+    const close = document.getElementById('close-chat');
+    const send = document.getElementById('chat-send');
+    const input = document.getElementById('chat-input');
+    toggle && toggle.addEventListener('click', ()=> panel.classList.toggle('hidden'));
+    close && close.addEventListener('click', ()=> panel.classList.add('hidden'));
+    send && send.addEventListener('click', ()=> { if(!input.value.trim()) return input.focus(); alert('Chat sent: '+input.value.trim()); input.value=''; panel.classList.add('hidden'); });
+  })();
+</script>
+
+<script>
+  document.querySelectorAll('a[href^="#"]').forEach(anchor=>{
+    anchor.addEventListener('click', function(e){
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if(target) window.scrollTo({ top: target.offsetTop - 60, behavior: 'smooth' });
+    });
+  });
+</script>
+
+<%- include('partials/scripts') %>

@@ -1,0 +1,449 @@
+<%- include('partials/head') %>
+<%- include('partials/nav', { user }) %>
+
+<main class="max-w-6xl mx-auto px-6 py-12 flex-1">
+  <!-- 1. Header -->
+  <header class="card p-6 mb-6">
+    <h1 class="text-3xl font-extrabold">PRO Tools & Features</h1>
+    <p class="muted mt-2">How to get the most out of your PRO plan.</p>
+  </header>
+
+  <!-- 2. Summary of Your PRO Plan -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="card p-4 md:col-span-2">
+      <h2 class="text-lg font-semibold">Summary of your PRO plan</h2>
+      <div class="mt-3 text-sm muted">This block shows the basic billing details for your active subscription. It's informational only.</div>
+
+      <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <div class="muted text-xs">Plan type</div>
+          <div class="font-medium"><%= (user && user.planType) ? user.planType : 'Monthly' %></div>
+        </div>
+
+        <div>
+          <div class="muted text-xs">Activation date</div>
+          <div class="font-medium"><%= (user && user.subscription && user.subscription.startDate) ? user.subscription.startDate : '—' %></div>
+        </div>
+
+        <div>
+          <div class="muted text-xs">Renewal date</div>
+          <div class="font-medium"><%= (user && user.subscription && user.subscription.renewalDate) ? user.subscription.renewalDate : '—' %></div>
+        </div>
+
+        <div>
+          <div class="muted text-xs">Remaining cycle</div>
+          <div class="font-medium"><%= (user && user.subscription && user.subscription.remaining) ? user.subscription.remaining : '—' %></div>
+        </div>
+
+        <div>
+          <div class="muted text-xs">Last payment ID</div>
+          <div class="font-medium"><%= (user && user.subscription && user.subscription.lastPaymentId) ? user.subscription.lastPaymentId : '—' %></div>
+        </div>
+
+        <div>
+          <div class="muted text-xs">Billing email</div>
+          <div class="font-medium"><%= (user && user.email) ? user.email : '—' %></div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="card p-4">
+      <h3 class="text-sm font-semibold">Account status</h3>
+      <div class="mt-3 text-sm muted">You are on PRO — all Pro features are active. No upgrade prompts are shown here.</div>
+      <div class="mt-4 text-sm">
+        <div class="muted text-xs">Support</div>
+        <div class="font-medium">Priority support access</div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- 3. AI Workspace Overview -->
+  <section class="card p-6 mb-6">
+    <h2 class="text-xl font-semibold">AI Workspace — overview & how to use</h2>
+    <p class="muted mt-2 text-sm">The workspace is your primary interface for organizing source material, running summaries, and iterating on outputs. Below are the concrete features and workflows.</p>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <h4 class="font-semibold">A. Projects</h4>
+        <ul class="mt-2 text-sm muted list-disc pl-5 space-y-2">
+          <li><strong>Create a project:</strong> Click "New Project", give it a name and optional tags. Use projects to group related jobs (e.g., Company X applications).</li>
+          <li><strong>Add files:</strong> Upload or drag-and-drop files into a project. You can also paste URLs to fetch web pages.</li>
+          <li><strong>Multi-document summary:</strong> Select multiple files inside a project and run "Aggregate Summary" to produce a unified summary across sources.</li>
+          <li><strong>Merge summaries:</strong> Use the merge tool to combine two or more summaries, resolving duplicates and unifying headings.</li>
+          <li><strong>Organize:</strong> Reorder files, add notes, and set a priority flag to surface important documents.</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-semibold">B. Saved Summaries</h4>
+        <ul class="mt-2 text-sm muted list-disc pl-5 space-y-2">
+          <li><strong>Auto-save:</strong> Drafts are auto-saved every 30 seconds while you edit — you can revert to autosaves from the history.</li>
+          <li><strong>Version history:</strong> Each manual save creates a version. You can compare versions and restore any previous one.</li>
+          <li><strong>Manual save:</strong> Use "Save" to snapshot the current output with a name and optional note.</li>
+          <li><strong>Duplicate summary:</strong> Create a copy to experiment with different tones or lengths without losing the original.</li>
+          <li><strong>Export:</strong> Export any saved summary as PDF, DOCX, or plain text.</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-semibold">C. Tabs / Layout</h4>
+        <ul class="mt-2 text-sm muted list-disc pl-5 space-y-2">
+          <li><strong>Summary view:</strong> The main output pane where AI results appear. Edit inline and re-run.</li>
+          <li><strong>Notes panel:</strong> Personal notes you can attach to summaries. Not sent to the AI unless explicitly included.</li>
+          <li><strong>Outline view:</strong> Shows headings and structure — useful for long documents.</li>
+          <li><strong>Q&amp;A extraction:</strong> Auto-extracts likely questions and short answers from the input material.</li>
+          <li><strong>Rewrite / Expand tools:</strong> Context-aware tools to rewrite tone, expand sections, or shorten content.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. File Upload System -->
+  <section class="card p-6 mb-6">
+    <h2 class="text-xl font-semibold">File upload system</h2>
+    <p class="muted mt-2 text-sm">PRO users get higher limits and more flexible upload options. Below are the supported types and operational details.</p>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <h4 class="font-semibold">A. Supported file types</h4>
+        <ul class="text-sm muted list-disc pl-5 mt-2 space-y-1">
+          <li>PDF</li>
+          <li>DOCX</li>
+          <li>TXT</li>
+          <li>Images: JPG, PNG</li>
+          <li>PPT (auto-converted to text)</li>
+          <li>Web pages (paste URL; server fetches and strips boilerplate)</li>
+        </ul>
+
+        <h4 class="font-semibold mt-4">B. Upload size limits</h4>
+        <div class="text-sm muted mt-2">
+          <div>Max file size: <strong>50 MB</strong> (per file).</div>
+          <div>Max files per upload: <strong>10</strong>.</div>
+        </div>
+
+        <h4 class="font-semibold mt-4">C. OCR Mode</h4>
+        <ul class="text-sm muted list-disc pl-5 mt-2 space-y-1">
+          <li>Scanned PDFs and images run through OCR to extract text.</li>
+          <li>Accuracy expectations: clean scans at 300 DPI+ yield the best results. Handwritten notes and low-contrast scans may fail.</li>
+          <li>Best practices: crop margins, rotate to correct orientation, use 300 DPI or higher.</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-semibold">D. Upload history</h4>
+        <ul class="text-sm muted list-disc pl-5 mt-2 space-y-1">
+          <li>Uploaded files are stored under your account and visible in Project → Files.</li>
+          <li>Retention: processed files are kept for <strong>30 days</strong> by default; files marked "Keep" will be retained until you delete them.</li>
+          <li>Delete logs: each delete action is logged under Activity → File actions.</li>
+          <li>Re-download: You can re-download processed exports (PDF/DOCX/TXT) from the file record.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Summary Modes -->
+  <section class="card p-6 mb-6">
+    <h2 class="text-xl font-semibold">Summary modes (PRO-only)</h2>
+    <p class="muted mt-2 text-sm">Choose a mode to match the output to your task. Each mode alters length, focus, and token use.</p>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <!-- Each item: mode, what, when, limits, example -->
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Concise</div>
+        <div class="muted text-xs mt-1">What: Short, 2–4 sentence summary focused on key facts.</div>
+        <div class="muted text-xs">When: Use for quick skimming or email previews.</div>
+        <div class="muted text-xs">Input limits: 20k tokens approx.</div>
+        <div class="mt-2 text-sm">Example: "Reduced load time by 40% by optimizing assets."</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Detailed</div>
+        <div class="muted text-xs mt-1">What: Multi-paragraph summary covering background, results, and next steps.</div>
+        <div class="muted text-xs">When: Use for reports or manager briefings.</div>
+        <div class="muted text-xs">Input limits: 80k tokens (high-token mode recommended).</div>
+        <div class="mt-2 text-sm">Example: "Project introduced X, which achieved Y over Z months..."</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Technical</div>
+        <div class="muted text-xs mt-1">What: Focuses on architecture, metrics, and reproducible steps.</div>
+        <div class="muted text-xs">When: Use for engineering handoffs and design docs.</div>
+        <div class="muted text-xs">Input limits: 120k tokens in High-Token mode.</div>
+        <div class="mt-2 text-sm">Example: "System uses Kafka for eventing and a Redis cache for hot reads."</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Bullet Points</div>
+        <div class="muted text-xs mt-1">What: Short bullets with action verbs and metrics.</div>
+        <div class="muted text-xs">When: Use for resume bullets and TL;DRs.</div>
+        <div class="muted text-xs">Input limits: 40k tokens.</div>
+        <div class="mt-2 text-sm">Example: "- Improved API latency by 25%"</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Study Notes</div>
+        <div class="muted text-xs mt-1">What: Condensed notes with definitions and examples.</div>
+        <div class="muted text-xs">When: Use for exam prep or onboarding.</div>
+        <div class="muted text-xs">Input limits: 50k tokens.</div>
+        <div class="mt-2 text-sm">Example: "Key concepts: consistency, availability — trade-offs explained."</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Chapter Breakdown</div>
+        <div class="muted text-xs mt-1">What: Splits long documents into chapter summaries and a TOC.</div>
+        <div class="muted text-xs">When: Use for books or long reports.</div>
+        <div class="muted text-xs">Input limits: 200k tokens with high-token mode.</div>
+        <div class="mt-2 text-sm">Example: "Chapter 1 — Context and scope; Chapter 2 — Implementation."</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Meeting Summary</div>
+        <div class="muted text-xs mt-1">What: Extracts decisions, owners, and action items.</div>
+        <div class="muted text-xs">When: Use for meeting notes and follow-ups.</div>
+        <div class="muted text-xs">Input limits: 40k tokens.</div>
+        <div class="mt-2 text-sm">Example: "Action — John: prepare Q2 forecast by May 12."</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Rewrite / Improve</div>
+        <div class="muted text-xs mt-1">What: Rewrites text for clarity, brevity, or tone.</div>
+        <div class="muted text-xs">When: Use when you want cleaner copy for applications.</div>
+        <div class="muted text-xs">Input limits: 40k tokens.</div>
+        <div class="mt-2 text-sm">Example: original → improved version (concise rewrite).</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Expand</div>
+        <div class="muted text-xs mt-1">What: Grows short notes into paragraphs with supporting details.</div>
+        <div class="muted text-xs">When: Use for drafts and cover letters.</div>
+        <div class="muted text-xs">Input limits: 60k tokens.</div>
+        <div class="mt-2 text-sm">Example: "Expanded paragraph with context, result, and next steps."</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Long-form Summary</div>
+        <div class="muted text-xs mt-1">What: Full-length synthesis for books and reports using the large context model.</div>
+        <div class="muted text-xs">When: Use for books, long reports, or legal documents.</div>
+        <div class="muted text-xs">Input limits: up to 1M tokens in Long-form mode (subject to service limits).</div>
+        <div class="mt-2 text-sm">Example: A comprehensive 10-page executive summary.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Speed & Priority -->
+  <section class="card p-6 mb-6">
+    <h2 class="text-xl font-semibold">Speed & priority</h2>
+    <p class="muted text-sm mt-2">Technical benefits for PRO users — exact behavior and expectations.</p>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm muted">
+      <div>
+        <h4 class="font-semibold">A. Queue priority</h4>
+        <div class="mt-2">PRO requests are processed on priority workers. In practice this means median latency is lower during peak hours — expect faster starts and fewer timeouts compared to free tier.</div>
+      </div>
+
+      <div>
+        <h4 class="font-semibold">B. High-Token model</h4>
+        <div class="mt-2">Access to larger context windows for handling long PDFs and books. Use High-Token mode when you need chapter-level summaries or to preserve document structure.</div>
+      </div>
+
+      <div>
+        <h4 class="font-semibold">C. Worker nodes</h4>
+        <div class="mt-2">Work is distributed across worker nodes. If a node is busy, the system reroutes to another node; failures fall back to queued retries. This improves resilience under load.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Customization Options -->
+  <section class="card p-6 mb-6">
+    <h2 class="text-xl font-semibold">Customization options</h2>
+    <div class="mt-3 muted text-sm">Control defaults and templates so outputs match your style.</div>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <div>
+        <h4 class="font-semibold">A. Default summary settings</h4>
+        <ul class="list-disc pl-5 mt-2 muted">
+          <li>Set default tone, output length, and structure.</li>
+          <li>Save defaults per project.</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-semibold">B. Templates</h4>
+        <ul class="list-disc pl-5 mt-2 muted">
+          <li>Create a template from a saved summary or from scratch.</li>
+          <li>Apply template on any summary to pre-fill structure and tone.</li>
+          <li>Save and delete templates in Template Library.</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-semibold">C. Tone selector</h4>
+        <div class="mt-2 muted">Available tones: Academic, Simple, Professional, Technical, Narrative. Tone affects word choice and sentence complexity — use Academic for formal docs, Simple for lay summaries, Technical for engineering audiences.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Devices & Sessions -->
+  <section class="card p-6 mb-6">
+    <h2 class="text-xl font-semibold">Devices & sessions</h2>
+    <div class="mt-3 text-sm muted">How device tracking and session controls work for your account.</div>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div>
+        <h4 class="font-semibold">A. Logged-in devices</h4>
+        <ul class="list-disc pl-5 mt-2 muted">
+          <li>Devices are tracked by browser fingerprint, IP, and user-agent to show "last active" and location hint.</li>
+          <li>Metadata shown: browser, OS, approximate IP region, and last active timestamp.</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-semibold">B. Session controls</h4>
+        <ul class="list-disc pl-5 mt-2 muted">
+          <li>Logout a device: immediate invalidation of that session token.</li>
+          <li>Logout all devices: invalidates all refresh tokens; you will be signed out of other sessions within seconds to a few minutes.</li>
+          <li>Restrictions: multiple concurrent logins are allowed but tokens can be revoked from the Sessions screen.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. Data & Privacy -->
+  <section class="card p-6 mb-6">
+    <h2 class="text-xl font-semibold">Data & privacy — facts only</h2>
+    <div class="mt-3 text-sm muted">No marketing. No ambiguity. These are the precise policies that affect your data.</div>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <div>
+        <h4 class="font-semibold">A. Summary storage</h4>
+        <div class="mt-2 muted">Saved summaries are stored encrypted at rest in your account namespace. Default retention: 365 days unless you delete earlier. Use "Delete forever" to remove permanently.</div>
+      </div>
+
+      <div>
+        <h4 class="font-semibold">B. File storage</h4>
+        <div class="mt-2 muted">Uploaded files are stored temporarily for processing (30 days by default). Files marked "Keep" are retained until you delete them. Files are encrypted at rest and in transit.</div>
+        <div class="mt-2 muted">We do not use your files or summaries to train models.</div>
+      </div>
+
+      <div>
+        <h4 class="font-semibold">C. User-controlled deletion</h4>
+        <div class="mt-2 muted">To purge workspace: delete projects, then delete files and saved summaries. After deletion, content is removed from primary storage and scheduled for background purge; some cached copies may persist for up to 30 days in backups.</div>
+        <div class="mt-2 muted">When subscription ends: you retain read-only access for 30 days; after that, workspace features are disabled and data follows the retention rules above.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. Billing & Account Management -->
+  <section class="card p-6 mb-6">
+    <h2 class="text-xl font-semibold">Billing & account management</h2>
+    <div class="mt-3 text-sm muted">Practical details about billing behavior and where to find receipts and invoices.</div>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <div>
+        <h4 class="font-semibold">A. Manage subscription</h4>
+        <div class="mt-2 muted">Change plan or billing interval from the Manage subscription page. Renewal occurs automatically unless canceled; grace periods vary and are shown during cancellation.</div>
+      </div>
+
+      <div>
+        <h4 class="font-semibold">B. Invoices</h4>
+        <div class="mt-2 muted">Download invoices from Billing → Invoices. Invoices are stored for your account and can be re-sent to billing email.</div>
+      </div>
+
+      <div>
+        <h4 class="font-semibold">C. Payment methods</h4>
+        <div class="mt-2 muted">Update card on file from Manage subscription. On payment failure we retry with exponential backoff; repeated failures may result in auto-cancel according to the plan's policy.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. Troubleshooting -->
+  <section class="card p-6 mb-6">
+    <h2 class="text-xl font-semibold">Troubleshooting — actionable</h2>
+    <p class="muted text-sm mt-2">If something fails, try the fixes below before contacting support. Each entry lists cause, fix, and when to escalate.</p>
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Summary stuck processing</div>
+        <div class="muted mt-2">Cause: temporary worker overload or corrupt input file.</div>
+        <div class="mt-1"><strong>Fix:</strong> Re-run the job, split large files, or remove non-text images. Clear browser cache if UI hangs.</div>
+        <div class="mt-1"><strong>When to contact:</strong> If it stays processing after 30 minutes, include job ID and sample input.</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">File upload failing</div>
+        <div class="muted mt-2">Cause: size limit, temporary network, or unsupported format.</div>
+        <div class="mt-1"><strong>Fix:</strong> Check file size, convert to a supported type (DOCX/PDF), retry on stable network. Try splitting files.</div>
+        <div class="mt-1"><strong>When to contact:</strong> If multiple retries fail, include file name, size, and browser console logs.</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">OCR not detecting text</div>
+        <div class="muted mt-2">Cause: low DPI, skewed pages, or handwritten text.</div>
+        <div class="mt-1"><strong>Fix:</strong> Rescan at 300 DPI+, crop margins, increase contrast. Use clean scanned PDF rather than photos.</div>
+        <div class="mt-1"><strong>When to contact:</strong> If OCR fails on clean images, attach a sample file and timestamp.</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Long-form mode errors</div>
+        <div class="muted mt-2">Cause: exceeding service limits or transient worker failure.</div>
+        <div class="mt-1"><strong>Fix:</strong> Split the document into chapters, run chapter-level summaries, then merge.</div>
+        <div class="mt-1"><strong>When to contact:</strong> If errors persist after splitting, include job ID and file sample.</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Workspace not saving</div>
+        <div class="muted mt-2">Cause: network interruption or local storage quota issues.</div>
+        <div class="mt-1"><strong>Fix:</strong> Check network, try manual save, sign out and sign in. If using browser private mode, switch to normal mode.</div>
+        <div class="mt-1"><strong>When to contact:</strong> If manual saves fail repeatedly, include browser, OS, and console logs.</div>
+      </div>
+
+      <div class="p-3 border rounded">
+        <div class="font-semibold">Device logout issues</div>
+        <div class="muted mt-2">Cause: token revocation delay or clock skew.</div>
+        <div class="mt-1"><strong>Fix:</strong> Wait up to 2 minutes and hard refresh. If device remains logged in, revoke tokens from Sessions screen.</div>
+        <div class="mt-1"><strong>When to contact:</strong> If revocation fails, provide session ID and last active time.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12. Priority Support -->
+  <section class="card p-6 mb-6">
+    <h2 class="text-xl font-semibold">Priority support (PRO)</h2>
+    <div class="mt-2 text-sm muted">How to use your priority status effectively. Follow these guidelines so support can resolve issues fast.</div>
+
+    <div class="mt-4 text-sm grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <div class="font-semibold">Expected response time</div>
+        <div class="muted mt-2">Priority tickets are routed to a PRO queue — expected first response within <strong>4 business hours</strong>.</div>
+
+        <div class="font-semibold mt-3">Support email</div>
+        <div class="muted mt-1">support@readhub.example (use from your billing email for faster routing)</div>
+      </div>
+
+      <div>
+        <div class="font-semibold">Priority ticket markers</div>
+        <div class="muted mt-2">Mark the ticket as PRO and include plan ID. Attach logs, job IDs, and sample files where applicable.</div>
+
+        <div class="font-semibold mt-3">Attachments</div>
+        <div class="muted mt-1">You can attach files up to 20 MB per attachment. Sensitive data should be redacted unless required for debugging.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13. Bottom Block -->
+  <footer class="card p-6 text-center">
+    <div class="text-lg font-semibold">You're using the PRO plan.</div>
+    <div class="muted mt-2">All features are active. Need help? Contact priority support at <strong>support@readhub.example</strong>.</div>
+  </footer>
+
+</main>
+
+<%- include('partials/footer') %>
+
+<script>
+  // small helper: toggle detail blocks (if you want collapsible behavior later)
+  document.querySelectorAll('.card .title-toggle').forEach(btn => btn.addEventListener('click', (e) => {
+    const target = document.getElementById(btn.dataset.target);
+    if (target) target.classList.toggle('hidden');
+  }));
+</script>

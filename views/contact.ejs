@@ -1,0 +1,371 @@
+<%- include('partials/head') %>
+<%- include('partials/nav', { user }) %>
+
+<!-- Page wrapper: column flex so footer naturally sits after content -->
+<div class="min-h-screen flex flex-col bg-gray-50">
+
+  <!-- Main content (grows to fill available space) -->
+  <main id="page-main" class="flex-grow">
+    <section class="max-w-6xl mx-auto px-6 py-12">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+
+        <!-- Left / Main column -->
+        <div class="lg:col-span-2">
+          <div class="<%= (user && user.isSubscriber) ? 'bg-gradient-to-br from-emerald-50 via-white to-white border border-emerald-100' : 'bg-white' %> rounded-2xl shadow-lg p-8">
+            <div class="flex items-start justify-between gap-6">
+              <div>
+                <h1 class="text-3xl font-bold <%= (user && user.isSubscriber) ? 'text-emerald-800' : 'text-slate-900' %>">Get in touch</h1>
+                <p class="mt-2 text-sm <%= (user && user.isSubscriber) ? 'text-emerald-700' : 'text-gray-500' %>">
+                  Questions, feedback, bugs or collaboration — we’re here to help. Pro users receive priority support and faster responses.
+                </p>
+              </div>
+
+              <% if (user && user.isSubscriber) { %>
+                <div class="flex flex-col items-end gap-2">
+                  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-sm">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.9 6.12L21 10l-5 3.64L17.8 21 12 17.77 6.2 21 8 13.64 3 10l6.1-1.88L12 2z" fill="currentColor"/></svg>
+                    Pro Support
+                  </div>
+                  <div class="text-xs text-gray-500">Priority replies • Dedicated inbox</div>
+                  <a href="/subscription/manage" class="mt-2 px-3 py-1 rounded bg-white border text-emerald-700 text-sm">Manage subscription</a>
+                </div>
+              <% } %>
+            </div>
+
+            <!-- Contact form card -->
+            <div class="mt-6 bg-white rounded-lg p-6 border shadow-sm">
+              <form id="contactForm" action="/contact" method="POST" enctype="multipart/form-data" novalidate>
+                <% if (user && user.isSubscriber) { %>
+                  <input type="hidden" name="priority" value="pro" />
+                <% } %>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="name" class="text-xs text-gray-600">Name</label>
+                    <input id="name" name="name" value="<%= user && user.fullname ? user.fullname : '' %>" class="mt-1 w-full p-3 border rounded focus:outline-none" required />
+                    <p id="nameErr" class="text-xs text-red-600 mt-1 hidden">Name is required.</p>
+                  </div>
+
+                  <div>
+                    <label for="email" class="text-xs text-gray-600">Email</label>
+                    <input id="email" name="email" type="email" value="<%= user && user.email ? user.email : '' %>" class="mt-1 w-full p-3 border rounded focus:outline-none" required />
+                    <p id="emailErr" class="text-xs text-red-600 mt-1 hidden">Valid email required.</p>
+                  </div>
+                </div>
+
+                <div class="mt-4">
+                  <label for="topic" class="text-xs text-gray-600">Topic</label>
+                  <select id="topic" name="topic" class="mt-1 w-full p-3 border rounded">
+                    <option value="general">General inquiry</option>
+                    <option value="technical">Technical issue</option>
+                    <option value="billing">Billing</option>
+                    <option value="feature">Feature suggestion</option>
+                    <option value="collab">Collaboration</option>
+                  </select>
+                </div>
+
+                <div class="mt-4">
+                  <label for="message" class="text-xs text-gray-600">Message</label>
+                  <textarea id="message" name="message" rows="6" class="mt-1 w-full p-3 border rounded focus:outline-none" required></textarea>
+                  <div class="flex items-center justify-between mt-2 text-xs text-gray-500">
+                    <div id="tagRow" class="flex gap-2 items-center"></div>
+                    <div id="charCount">0 / 2000</div>
+                  </div>
+                </div>
+
+                <div class="mt-4">
+                  <label class="text-xs text-gray-600 mb-2 block">Attachment (optional)</label>
+                  <div id="dropZone" class="flex items-center justify-between gap-3 p-3 border-dashed border-2 rounded cursor-pointer text-sm text-gray-600">
+                    <div>Drag & drop or click to upload — .png, .jpg, .txt, .log (max 5MB)</div>
+                    <div id="fileMeta" class="text-xs text-gray-400"></div>
+                  </div>
+                  <input type="file" id="attachment" name="attachment" class="hidden" />
+                </div>
+
+                <div class="mt-4 flex items-center gap-3">
+                  <label class="flex items-center gap-2 text-xs text-gray-600">
+                    <input id="includeSys" type="checkbox" class="w-4 h-4" /> Include system info (helps debug)
+                  </label>
+
+                  <button id="helpWrite" type="button" class="ml-auto px-3 py-2 rounded border text-sm">Help me write</button>
+                </div>
+
+                <div class="mt-5 flex items-center gap-3">
+                  <button id="sendBtn" type="submit" class="px-6 py-3 rounded-md text-white bg-sky-600 hover:bg-sky-700 shadow">
+                    <span id="sendBtnText"><%= (user && user.isSubscriber) ? 'Send as Pro (Priority)' : 'Send message' %></span>
+                  </button>
+
+                  <div id="statusBadge" class="text-sm text-gray-500">
+                    Auto-tags: <span id="autoTags">—</span>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div id="inlineSuccess" class="mt-4 hidden bg-emerald-50 border border-emerald-100 text-emerald-800 rounded p-3">
+              Thanks — we’ve received your message. We’ll reply soon.
+            </div>
+          </div>
+        </div>
+
+        <!-- Right / Sidebar -->
+        <aside>
+          <div class="<%= (user && user.isSubscriber) ? 'bg-white/95 border-emerald-100' : 'bg-white' %> rounded-2xl shadow-sm p-6 sticky top-24">
+
+            <h3 class="font-semibold">Quick contact</h3>
+            <p class="text-sm text-gray-500 mt-2">Shortcuts to get help fast.</p>
+
+            <div class="mt-4 grid gap-3">
+              <% if (user && user.isSubscriber) { %>
+                <a href="/subscription/manage" class="p-3 border rounded-md flex items-start gap-3 bg-emerald-50 hover:scale-101 transition">
+                  <div class="flex-1 text-left">
+                    <div class="font-medium">⭐ Priority Support</div>
+                    <div class="text-xs text-emerald-700 mt-1">You get faster replies and dedicated tracking.</div>
+                  </div>
+                  <div class="text-xs text-emerald-600">Pro</div>
+                </a>
+
+                <a href="mailto:priority@readhub.example" class="p-3 border rounded-md flex items-start gap-3 hover:scale-101 transition">
+                  <div class="flex-1 text-left">
+                    <div class="font-medium">📧 priority@readhub.example</div>
+                    <div class="text-xs text-gray-500 mt-1">Priority inbox for Pro users</div>
+                  </div>
+                </a>
+
+                <a href="/docs" class="p-3 border rounded-md flex items-start gap-3 hover:scale-101 transition">
+                  <div class="flex-1 text-left">
+                    <div class="font-medium">📄 Docs & FAQ</div>
+                    <div class="text-xs text-gray-500 mt-1">Detailed guides & troubleshooting</div>
+                  </div>
+                </a>
+              <% } else { %>
+                <button class="p-3 border rounded-md text-left hover:scale-101 transition">💬 Live Chat <div class="text-xs text-gray-400">Coming soon</div></button>
+                <a href="mailto:support@readhub.example" class="p-3 border rounded-md hover:scale-101 transition">📧 support@readhub.example</a>
+                <a href="/docs" class="p-3 border rounded-md hover:scale-101 transition">📄 Docs & FAQ</a>
+              <% } %>
+            </div>
+
+            <div class="mt-6">
+              <h4 class="text-sm font-medium">Response time</h4>
+              <div class="text-xs mt-1 <%= (user && user.isSubscriber) ? 'text-emerald-600' : 'text-gray-500' %>">
+                Average reply: <strong><%= (user && user.isSubscriber) ? '1–2 hours' : '2–4 hours' %></strong>
+              </div>
+              <div class="text-xs text-gray-400">Support hours: 9AM–7PM IST (Mon–Sat)</div>
+            </div>
+
+            <div class="mt-6 text-xs text-gray-400">
+              <div class="font-medium">Before you contact</div>
+              <ul class="list-disc list-inside mt-2">
+                <li><a href="/troubleshoot" class="text-sky-600">Troubleshoot long text issues</a></li>
+                <li><a href="/enterprise" class="text-sky-600">Enterprise & custom models</a></li>
+              </ul>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer (keeps natural flow) -->
+  <%- include('partials/footer') %>
+</div>
+
+<!-- Overlays appended to body to avoid stacking issues -->
+<button id="needHelp" class="hidden fixed right-5 bottom-6 bg-white border rounded-full p-3 shadow-lg z-50" aria-label="Need help?">
+  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none"><path d="M2 12a10 10 0 1020 0A10 10 0 002 12zm10-5a2 2 0 110 4 2 2 0 010-4zm1 11h-2v-2h2v2z" fill="currentColor"/></svg>
+</button>
+
+<div id="confirmModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+  <div class="bg-white rounded-lg w-full max-w-xl p-6 shadow-lg">
+    <div class="flex items-start gap-4">
+      <div class="flex-1">
+        <h3 class="text-xl font-semibold">Thanks! 🎉</h3>
+        <p class="text-sm text-gray-600 mt-2">We’ve received your message. Our team will reply shortly.</p>
+
+        <div class="mt-4 flex gap-2">
+          <a href="/" class="px-3 py-2 border rounded">Return home</a>
+          <a href="/summary" class="px-3 py-2 border rounded">Go to Summarize</a>
+          <button id="sendAnother" class="px-3 py-2 bg-sky-600 text-white rounded">Send another</button>
+        </div>
+      </div>
+
+      <div class="w-28 h-28 rounded-md bg-gradient-to-br from-sky-50 to-white flex items-center justify-center">🙂</div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/scripts') %>
+
+<style>
+  /* Footer should be part of normal flow so it never overlaps content.
+     Page wrapper uses flex-col; main uses flex-grow. No absolute/fixed footer. */
+  footer, .site-footer, .page-footer, #site-footer {
+    position: relative !important;
+    z-index: 10;
+  }
+
+  /* Make sure overlays are above footer but not insanely high */
+  #confirmModal, #needHelp { z-index: 99999 !important; }
+
+  /* Minor helper */
+  .hover\\:scale-101:hover { transform: scale(1.01); }
+</style>
+
+<script>
+(function(){
+  const form = document.getElementById('contactForm');
+  const nameEl = document.getElementById('name');
+  const emailEl = document.getElementById('email');
+  const messageEl = document.getElementById('message');
+  const sendBtn = document.getElementById('sendBtn');
+  const sendBtnText = document.getElementById('sendBtnText');
+  const charCount = document.getElementById('charCount');
+  const tagRow = document.getElementById('tagRow');
+  const autoTags = document.getElementById('autoTags');
+  const dropZone = document.getElementById('dropZone');
+  const attachment = document.getElementById('attachment');
+  const fileMeta = document.getElementById('fileMeta');
+  const inlineSuccess = document.getElementById('inlineSuccess');
+  const confirmModal = document.getElementById('confirmModal');
+  const needHelp = document.getElementById('needHelp');
+  const helpWrite = document.getElementById('helpWrite');
+  const sendAnother = document.getElementById('sendAnother');
+
+  function isEmail(v){ return /\S+@\S+\.\S+/.test(v); }
+
+  function updateTagsAndCount(){
+    const txt = (messageEl && messageEl.value || '').toLowerCase();
+    const set = new Set();
+    if (txt.includes('payment')||txt.includes('invoice')||txt.includes('billing')) set.add('Billing');
+    if (txt.includes('error')||txt.includes('bug')||txt.includes('stack')) set.add('Technical');
+    if (txt.includes('suggest')||txt.includes('feature')) set.add('Suggestion');
+    if (txt.includes('collab')||txt.includes('partnership')) set.add('Collaboration');
+    if (autoTags) autoTags.textContent = ([...set].join(', ') || '—');
+    if (tagRow) {
+      tagRow.innerHTML = '';
+      [...set].forEach(t => {
+        const el = document.createElement('span');
+        el.className = 'px-2 py-1 text-xs bg-gray-50 border rounded-full';
+        el.textContent = t;
+        tagRow.appendChild(el);
+      });
+    }
+    const len = (messageEl && messageEl.value || '').length;
+    if (charCount) charCount.textContent = `${len} / 2000`;
+  }
+  messageEl && messageEl.addEventListener('input', updateTagsAndCount);
+  updateTagsAndCount();
+
+  if (dropZone) {
+    dropZone.addEventListener('click', ()=> attachment && attachment.click());
+    dropZone.addEventListener('dragover', (e)=>{ e.preventDefault(); dropZone.classList.add('ring'); });
+    dropZone.addEventListener('dragleave', ()=> dropZone.classList.remove('ring'));
+    dropZone.addEventListener('drop', (e)=>{ e.preventDefault(); dropZone.classList.remove('ring'); const f = e.dataTransfer.files?.[0]; if(f) handleFile(f); });
+    attachment && attachment.addEventListener('change', ()=> { if(attachment.files[0]) handleFile(attachment.files[0]); });
+    function handleFile(f){
+      if (!f) return;
+      if (f.size > 5 * 1024 * 1024) { if (fileMeta) fileMeta.textContent = 'File too large (max 5MB)'; return; }
+      if (fileMeta) fileMeta.textContent = `${f.name} • ${(f.size/1024|0)} KB`;
+    }
+  }
+
+  helpWrite && helpWrite.addEventListener('click', ()=> {
+    const seed = (messageEl && messageEl.value || '').trim().slice(0,250);
+    const suggestion = seed ? `${seed}\n\nCould you briefly describe what you tried and the desired outcome?` : 'Hi — I would like help with... (briefly describe problem).';
+    const box = document.createElement('div');
+    box.className = 'fixed bottom-24 right-6 bg-white border rounded-md shadow p-3 w-80 z-50';
+    box.innerHTML = `<div class="text-sm text-gray-800">Suggestion</div><pre class="text-xs mt-2">${suggestion}</pre><div class="mt-2 text-right"><button id="applySugg" class="px-2 py-1 border rounded">Apply</button> <button id="closeSugg" class="px-2 py-1 border rounded">Close</button></div>`;
+    document.body.appendChild(box);
+    document.getElementById('applySugg').addEventListener('click', ()=> { if (messageEl) messageEl.value = suggestion; updateTagsAndCount(); box.remove(); });
+    document.getElementById('closeSugg').addEventListener('click', ()=> box.remove());
+  });
+
+  window.addEventListener('scroll', ()=> {
+    if (!needHelp) return;
+    if (window.scrollY > 200) needHelp.classList.remove('hidden'); else needHelp.classList.add('hidden');
+  });
+  needHelp && needHelp.addEventListener('click', ()=> {
+    const top = document.querySelector('main')?.offsetTop || 0;
+    window.scrollTo({ top: top + 20, behavior: 'smooth' });
+    messageEl && messageEl.focus();
+  });
+
+  form && form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    let ok = true;
+    if (nameEl && !nameEl.value.trim()) {
+      document.getElementById('nameErr')?.classList.remove('hidden');
+      ok = false;
+    } else {
+      document.getElementById('nameErr')?.classList.add('hidden');
+    }
+    if (emailEl && !isEmail(emailEl.value.trim())) {
+      document.getElementById('emailErr')?.classList.remove('hidden');
+      ok = false;
+    } else {
+      document.getElementById('emailErr')?.classList.add('hidden');
+    }
+    if (messageEl && !messageEl.value.trim()) {
+      messageEl.classList.add('animate-shake');
+      setTimeout(()=> messageEl.classList.remove('animate-shake'), 600);
+      ok = false;
+    }
+    if (!ok) return;
+
+    sendBtn && (sendBtn.disabled = true);
+    const origText = sendBtnText && sendBtnText.textContent;
+    if (sendBtnText) sendBtnText.textContent = '<%= (user && user.isSubscriber) ? "Sending (priority)..." : "Sending..." %>';
+
+    try {
+      const formData = new FormData(form);
+      if (attachment && attachment.files && attachment.files[0]) {
+        formData.set(attachment.name || 'attachment', attachment.files[0]);
+      }
+
+      const res = await fetch('/contact', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) {
+        let errMsg = 'Server error';
+        try {
+          const payload = await res.json().catch(()=>null);
+          if (payload && payload.error) errMsg = payload.error;
+          else {
+            const txt = await res.text().catch(()=>null);
+            if (txt) errMsg = txt;
+          }
+        } catch (err) {}
+        throw new Error(errMsg);
+      }
+
+      inlineSuccess && inlineSuccess.classList.remove('hidden');
+      confirmModal && confirmModal.classList.remove('hidden');
+
+      if (messageEl) messageEl.value = '';
+      if (attachment) { attachment.value = ''; if (fileMeta) fileMeta.textContent = ''; }
+      updateTagsAndCount();
+    } catch (err) {
+      console.error('Contact send failed:', (err && err.message) || err);
+      alert('Failed to send message. Try again later.');
+    } finally {
+      sendBtn && (sendBtn.disabled = false);
+      if (sendBtnText) sendBtnText.textContent = origText;
+    }
+  });
+
+  sendAnother && sendAnother.addEventListener('click', ()=> {
+    if (confirmModal) confirmModal.classList.add('hidden');
+    if (inlineSuccess) inlineSuccess.classList.add('hidden');
+    messageEl && messageEl.focus();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    try { const m = document.getElementById('confirmModal'); if (m && m.parentElement !== document.body) document.body.appendChild(m); } catch(e){}
+    try { const h = document.getElementById('needHelp'); if (h && h.parentElement !== document.body) document.body.appendChild(h); } catch(e){}
+  });
+})();
+</script>

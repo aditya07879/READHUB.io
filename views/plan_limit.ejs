@@ -1,0 +1,42 @@
+<!-- views/plan_limit.ejs
+     This is a modal fragment (no head/include). It is meant to be inserted
+     into the document body by the client as an overlay. -->
+<div id="limit-modal-overlay" class="fixed inset-0 z-[9999] flex items-center justify-center">
+  <!-- dark translucent backdrop -->
+  <div id="limit-modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+  <!-- modal card -->
+  <div class="relative z-10 w-full max-w-lg mx-4">
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 md:p-8 text-left">
+      <button id="limit-modal-close" aria-label="Close" class="absolute right-4 top-4 text-gray-500 hover:text-gray-700">
+        ✕
+      </button>
+
+      <div class="flex items-start gap-4">
+        <div class="flex-shrink-0">
+          <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-cyan-400 flex items-center justify-center text-white">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none"><path d="M12 2v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 8v12h12V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <div class="flex-1">
+          <h2 class="text-2xl font-semibold text-slate-900 mb-1">Free quota reached</h2>
+          <p class="text-sm text-slate-600 mb-4">You've used your free summaries. Upgrade to Pro to continue with unlimited summaries and priority access.</p>
+
+          <div class="flex gap-3 items-center">
+            <a href="/pricing" class="inline-block px-5 py-2 rounded-lg btn-brand font-semibold">View Plans</a>
+            <button id="limit-modal-dismiss" class="inline-block px-4 py-2 rounded-lg border text-sm">Close</button>
+          </div>
+
+          <div class="mt-4 text-xs text-slate-500">Free: 2/day • Pro: unlimited + priority queue • Contact support at <strong>readhub07879@gmail.com</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* small show animation */
+  #limit-modal-overlay { animation: modalFade .14s ease-out both; }
+  @keyframes modalFade { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: translateY(0) } }
+</style>

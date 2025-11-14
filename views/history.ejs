@@ -1,0 +1,508 @@
+<%- include('partials/head') %>
+<%- include('partials/nav', { user }) %>
+
+<main class="min-h-screen flex flex-col bg-gray-50">
+  <!-- Top bar -->
+  <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold">History</h1>
+      <p class="text-sm text-gray-500">Saved summaries from your account — manage, export or restore.</p>
+    </div>
+
+    <div class="flex-1">
+      <div class="flex items-center gap-3 w-full">
+        <div class="flex-1">
+          <input id="searchBox" placeholder="Search summaries, original text, tags..." class="w-full border rounded-md px-3 py-2" />
+        </div>
+
+        <div class="hidden sm:flex items-center gap-2">
+          <select id="filterMode" class="border rounded-md px-2 py-2 text-sm">
+            <option value="">All modes</option>
+            <option value="concise">Concise</option>
+            <option value="bullet">Bulleted</option>
+            <option value="executive">Executive</option>
+          </select>
+
+          <button id="filterPinned" class="px-3 py-2 border rounded-md text-sm">Pinned</button>
+          <button id="filterEdited" class="px-3 py-2 border rounded-md text-sm">Edited</button>
+
+          <select id="sortBy" class="border rounded-md px-2 py-2 text-sm">
+            <option value="new">New → Old</option>
+            <option value="old">Old → New</option>
+            <option value="mode">Mode</option>
+            <option value="length">Length</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2 ml-2">
+          <button id="exportBulk" class="px-3 py-2 bg-white border rounded-md text-sm">Export</button>
+          <button id="deleteBulk" class="px-3 py-2 border rounded-md text-sm">Delete</button>
+          <button id="settingsBtn" class="px-2 py-2 border rounded-md text-sm">⚙</button>
+        </div>
+      </div>
+
+      <!-- Mobile filters row -->
+      <div class="mt-3 sm:hidden flex items-center gap-2">
+        <select id="mFilterMode" class="border rounded-md px-2 py-2 text-sm w-full">
+          <option value="">All modes</option>
+          <option value="concise">Concise</option>
+          <option value="bullet">Bulleted</option>
+          <option value="executive">Executive</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content area -->
+  <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex-1">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
+      <!-- Main list (left / center) -->
+      <section class="lg:col-span-3 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <label class="text-sm text-gray-600"><input id="compactToggle" type="checkbox" class="mr-2"/> Compact</label>
+            <label class="text-sm text-gray-600"><input id="selectModeToggle" type="checkbox" class="mr-2"/> Multi-select</label>
+          </div>
+
+          <div class="text-sm text-gray-500">Showing <span id="resultsCount">0</span></div>
+        </div>
+
+        <!-- Scrollable cards container -->
+        <div id="cardsWrap" class="flex-1 overflow-y-auto bg-white rounded-md p-4 shadow-sm">
+          <!-- cards injected by JS -->
+        </div>
+
+        <div id="noResults" class="hidden p-6 bg-white rounded-md text-center text-gray-500 mt-4">No summaries found.</div>
+      </section>
+
+      <!-- Detail inspector (right) - sticky -->
+      <aside id="inspector" class="hidden lg:block bg-white rounded-md shadow p-4 sticky top-20 h-[calc(100vh-160px)] overflow-auto">
+        <div class="flex items-start justify-between mb-2">
+          <div>
+            <h3 id="insTitle" class="font-semibold">Select a summary</h3>
+            <div id="insMeta" class="text-xs text-gray-500">—</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="insPin" class="px-2 py-1 border rounded text-sm">Pin</button>
+            <button id="insExport" class="px-2 py-1 border rounded text-sm">Export</button>
+            <button id="insDelete" class="px-2 py-1 border rounded text-sm">Delete</button>
+          </div>
+        </div>
+
+        <div id="insBody" class="prose text-sm text-gray-800">
+          <p class="text-gray-400">Open a card to view details.</p>
+        </div>
+
+        <div class="mt-4 text-xs text-gray-500">Tip: press <kbd>Esc</kbd> to close.</div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Footer included so main remains column-flex and footer sits below scrollable area -->
+  <%- include('partials/footer') %>
+</main>
+
+<%- include('partials/scripts') %>
+
+<style>
+  html, body { height: 100%; }
+  main.min-h-screen { min-height: 100vh; }
+  @media (max-width: 1023px) {
+    #cardsWrap { max-height: calc(100vh - 220px); }
+  }
+  @media (min-width: 1024px) {
+    #cardsWrap { max-height: calc(100vh - 160px); }
+    #inspector { top: 20px; }
+  }
+  #cardsWrap > * + * { margin-top: 0.6rem; }
+</style>
+
+<script>
+(function(){
+  'use strict';
+
+  // API endpoints
+  const API_LIST = '/api/history';
+  const API_GET  = (id) => `/api/history/${encodeURIComponent(id)}`;
+  const API_DELETE = (id) => `/api/history/${encodeURIComponent(id)}`;
+
+  // DOM refs
+  const cardsWrap = document.getElementById('cardsWrap');
+  const searchBox = document.getElementById('searchBox');
+  const mFilterMode = document.getElementById('mFilterMode');
+  const filterMode = document.getElementById('filterMode');
+  const filterPinned = document.getElementById('filterPinned');
+  const filterEdited = document.getElementById('filterEdited');
+  const sortBy = document.getElementById('sortBy');
+  const compactToggle = document.getElementById('compactToggle');
+  const selectModeToggle = document.getElementById('selectModeToggle');
+  const resultsCount = document.getElementById('resultsCount');
+  const exportBtn = document.getElementById('exportBulk');
+  const deleteBtn = document.getElementById('deleteBulk');
+  const clearBtn = document.getElementById('clearHistory');
+  const inspector = document.getElementById('inspector');
+  const insTitle = document.getElementById('insTitle');
+  const insMeta = document.getElementById('insMeta');
+  const insBody = document.getElementById('insBody');
+  const insPin = document.getElementById('insPin');
+  const insExport = document.getElementById('insExport');
+  const insDelete = document.getElementById('insDelete');
+  const noResults = document.getElementById('noResults');
+
+  if (!cardsWrap) {
+    console.warn('history script: #cardsWrap not found. Aborting.');
+    return;
+  }
+
+  // State
+  let items = [];
+  let filtered = [];
+  let selectedIds = new Set();
+  let multiSelect = false;
+  const DEBOUNCE = 180;
+  let debounceTimer = null;
+
+  // Local pins
+  const PIN_KEY = 'readhub_pins';
+  function loadPins(){ try { return JSON.parse(localStorage.getItem(PIN_KEY) || '[]') || []; } catch(e){ return []; } }
+  function savePins(arr){ try { localStorage.setItem(PIN_KEY, JSON.stringify(arr)); } catch(e){} }
+  function pinHas(id){ return loadPins().indexOf(String(id)) !== -1; }
+  function togglePinLocal(id){
+    const pins = loadPins();
+    const idx = pins.indexOf(String(id));
+    if (idx === -1) pins.unshift(String(id));
+    else pins.splice(idx,1);
+    savePins(pins);
+  }
+
+  // Helpers
+  function toast(msg, t=1200){
+    const el = document.createElement('div');
+    el.className = 'fixed right-6 bottom-6 p-3 rounded shadow bg-white text-sm';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(()=>{ el.style.opacity = '0'; setTimeout(()=>el.remove(),300); }, t);
+  }
+
+  // NEW: fetch helper that sends cookies and optional JWT header
+  async function fetchJson(url, opts = {}) {
+    // default to including cookies (for cookie-session auth)
+    const defaultOpts = { credentials: 'include', headers: {} };
+
+    // attach Authorization header if token exists in localStorage
+    let token = null;
+    try { token = localStorage.getItem('token'); } catch (e) { token = null; }
+    if (token) defaultOpts.headers.Authorization = `Bearer ${token}`;
+
+    // merge headers carefully
+    opts = Object.assign({}, defaultOpts, opts || {});
+    opts.headers = Object.assign({}, defaultOpts.headers || {}, opts.headers || {});
+
+    const res = await fetch(url, opts);
+    if (!res.ok) {
+      const txt = await res.text().catch(()=>res.statusText);
+      const err = new Error(`${res.status} ${txt}`);
+      err.status = res.status;
+      throw err;
+    }
+    return res.status === 204 ? null : res.json();
+  }
+
+  function formatDate(iso){ try { return new Date(iso).toLocaleString(); } catch(e){ return iso || ''; } }
+
+  // Render list (same as before)
+  function renderList() {
+    cardsWrap.innerHTML = '';
+    if (!filtered.length) {
+      if (noResults) noResults.classList.remove('hidden');
+      cardsWrap.innerHTML = '<div class="p-4 text-gray-500">No summaries found.</div>';
+      if (resultsCount) resultsCount.textContent = 0;
+      return;
+    }
+    if (noResults) noResults.classList.add('hidden');
+
+    const compact = compactToggle && compactToggle.checked;
+    const fragment = document.createDocumentFragment();
+
+    filtered.forEach(item => {
+      const id = String(item._id || item.id || Math.random().toString(36).slice(2));
+      const card = document.createElement('article');
+      card.className = 'p-3 border rounded flex items-start justify-between gap-4 bg-white';
+      if (compact) card.classList.add('text-sm');
+
+      // Left
+      const left = document.createElement('div');
+      left.className = 'flex-1';
+      const metaRow = document.createElement('div');
+      metaRow.className = 'flex items-center justify-between';
+      const title = document.createElement('div');
+      title.className = 'font-medium';
+      title.textContent = `${item.mode || '—'} • ${formatDate(item.createdAt || item.ts || item.date)}`;
+      metaRow.appendChild(title);
+
+      const preview = document.createElement('div');
+      preview.className = 'mt-2 text-sm text-gray-700';
+      const text = String(item.summaryText || item.summary || item.text || '');
+      preview.textContent = text.split('\n').slice(0,3).join(' ').slice(0,240);
+
+      left.appendChild(metaRow);
+      left.appendChild(preview);
+
+      // Right actions
+      const right = document.createElement('div');
+      right.className = 'flex flex-col gap-2 items-end';
+
+      // Multi-select checkbox
+      if (multiSelect) {
+        const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = selectedIds.has(id);
+        cb.addEventListener('change', (e) => {
+          if (e.target.checked) selectedIds.add(id); else selectedIds.delete(id);
+          updateBulkUI();
+        });
+        right.appendChild(cb);
+      }
+
+      // Buttons
+      right.appendChild(makeBtn('Restore', ()=>restoreToEditor(item)));
+      right.appendChild(makeBtn('Copy', async ()=>{ try { await navigator.clipboard.writeText(text); toast('Copied'); } catch(e){ toast('Copy failed'); } }));
+      right.appendChild(makeBtn('Download', ()=>downloadText(text, `summary-${id}.txt`)));
+
+      // Pin (local)
+      const pinBtn = makeBtn(pinHas(id) ? 'Unpin' : 'Pin', () => {
+        togglePinLocal(id);
+        pinBtn.textContent = pinHas(id) ? 'Unpin' : 'Pin';
+        toast(pinHas(id) ? 'Pinned (local)' : 'Unpinned (local)');
+        markPinsOnItems();
+        sortPinnedFirst();
+        renderList();
+      });
+      right.appendChild(pinBtn);
+
+      right.appendChild(makeBtn('Delete', async () => {
+        if (!confirm('Delete this summary from server?')) return;
+        try {
+          await fetchJson(API_DELETE(id), { method: 'DELETE' });
+          toast('Deleted');
+          await loadAndFilter();
+        } catch (err) {
+          console.error(err);
+          toast('Delete failed');
+        }
+      }));
+
+      card.appendChild(left);
+      card.appendChild(right);
+      fragment.appendChild(card);
+
+      // card click opens inspector
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button') || e.target.closest('input')) return;
+        openInspector(item);
+      });
+    });
+
+    cardsWrap.appendChild(fragment);
+    if (resultsCount) resultsCount.textContent = filtered.length;
+    updateBulkUI();
+  }
+
+  function makeBtn(label, onClick) {
+    const b = document.createElement('button');
+    b.className = 'px-2 py-1 rounded border text-xs bg-white';
+    b.textContent = label;
+    b.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); onClick(); });
+    return b;
+  }
+
+  function downloadText(text, filename='summary.txt'){
+    const blob = new Blob([text||''], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // Inspector
+  function openInspector(item) {
+    if (!inspector) return;
+    insTitle.textContent = (item.mode || '—') + ' • ' + (item.createdAt ? formatDate(item.createdAt) : '');
+    insMeta.textContent = `Words: ${(String(item.summaryText || item.text || '').split(/\s+/).filter(Boolean).length)}`;
+    insBody.innerHTML = `<pre class="whitespace-pre-wrap">${escapeHtml(String(item.summaryText || item.text || ''))}</pre>`;
+    inspector.classList.remove('hidden');
+
+    if (insPin) {
+      insPin.textContent = pinHas(item._id || item.id) ? 'Unpin' : 'Pin';
+      insPin.onclick = () => { togglePinLocal(item._id || item.id); insPin.textContent = pinHas(item._id || item.id) ? 'Unpin' : 'Pin'; markPinsOnItems(); sortPinnedFirst(); renderList(); };
+    }
+    if (insExport) insExport.onclick = () => downloadText(item.summaryText || item.text || '', `summary-${item._id || item.id}.txt`);
+    if (insDelete) insDelete.onclick = async () => { if (!confirm('Delete this summary from server?')) return; try { await fetchJson(API_DELETE(item._id || item.id), { method: 'DELETE' }); toast('Deleted'); await loadAndFilter(); } catch(e){ toast('Delete failed'); } };
+
+    inspector.scrollTop = 0;
+  }
+
+  function escapeHtml(s=''){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // Restore: copy to clipboard and attempt to populate summary editor fields
+  function restoreToEditor(item) {
+    const text = String(item.summaryText || item.text || '');
+    navigator.clipboard.writeText(text).then(()=> toast('Summary copied to clipboard — paste into editor'));
+    try {
+      const preview = document.getElementById('preview') || document.getElementById('summary-view');
+      const editor = document.getElementById('summary-textarea') || document.getElementById('editor') || document.getElementById('summary-edit');
+      const inputText = document.getElementById('source-text') || document.getElementById('inputText');
+      if (preview) preview.textContent = text;
+      if (editor) (editor.tagName === 'TEXTAREA' ? editor.value = text : editor.textContent = text);
+      if (inputText) inputText.value = item.originalText || item.original || '';
+    } catch(e){}
+  }
+
+  // Filtering / search
+  function applyFilter(q) {
+    if (!q) filtered = items.slice();
+    else {
+      const lower = q.toLowerCase();
+      filtered = items.filter(it => {
+        const hay = ((it.summaryText || it.text || '') + ' ' + (it.originalText || it.original || '') + ' ' + (it.mode || '')).toLowerCase();
+        return hay.includes(lower);
+      });
+    }
+    sortPinnedFirst();
+  }
+
+  function scheduleFilter() {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(()=> {
+      const q = (searchBox && searchBox.value) ? searchBox.value : (mFilterMode && mFilterMode.value ? mFilterMode.value : '');
+      applyFilter(q);
+      renderList();
+    }, DEBOUNCE);
+  }
+
+  // Pins handling on items
+  function markPinsOnItems() {
+    const pins = loadPins();
+    items.forEach(it => { it._pinnedLocal = pins.indexOf(String(it._id || it.id || '')) !== -1; });
+  }
+  function sortPinnedFirst() {
+    items.sort((a,b) => {
+      const pa = a._pinnedLocal ? 1 : 0;
+      const pb = b._pinnedLocal ? 1 : 0;
+      if (pa !== pb) return pa > pb ? -1 : 1;
+      return new Date(b.createdAt || b.ts || 0) - new Date(a.createdAt || a.ts || 0);
+    });
+    filtered.sort((a,b) => {
+      const pa = a._pinnedLocal ? 1 : 0;
+      const pb = b._pinnedLocal ? 1 : 0;
+      if (pa !== pb) return pa > pb ? -1 : 1;
+      return new Date(b.createdAt || b.ts || 0) - new Date(a.createdAt || a.ts || 0);
+    });
+  }
+
+  // Bulk actions
+  function updateBulkUI() {
+    const any = selectedIds.size > 0;
+    if (exportBtn) exportBtn.textContent = any ? `Export (${selectedIds.size})` : 'Export';
+    if (deleteBtn) deleteBtn.textContent = any ? `Delete (${selectedIds.size})` : 'Delete';
+  }
+
+  async function doExport() {
+    if (selectedIds.size) {
+      const chosen = items.filter(it => selectedIds.has(String(it._id || it.id)));
+      if (!chosen.length) { toast('No items selected'); return; }
+      const blob = new Blob([JSON.stringify(chosen, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'selected-summaries.json'; document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(a.href);
+      toast('Exported selected');
+      return;
+    }
+    const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'summaries.json'; document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+    toast('Exported all');
+  }
+
+  async function doBulkDelete() {
+    if (selectedIds.size) {
+      if (!confirm(`Delete ${selectedIds.size} selected summaries from server?`)) return;
+      const ids = Array.from(selectedIds);
+      try {
+        await Promise.all(ids.map(id => fetchJson(API_DELETE(id), { method: 'DELETE' })));
+        toast('Deleted selected');
+        selectedIds.clear();
+        await loadAndFilter();
+      } catch (err) {
+        console.error(err);
+        toast('Bulk delete failed');
+      }
+      return;
+    }
+    if (!confirm('Delete ALL summaries from server? This cannot be undone.')) return;
+    try {
+      await Promise.all(items.map(it => fetchJson(API_DELETE(it._id || it.id), { method: 'DELETE' })));
+      toast('All deleted');
+      await loadAndFilter();
+    } catch (err) {
+      console.error(err);
+      toast('Delete all failed');
+    }
+  }
+
+  // Load from server
+  async function loadAndFilter(){
+    try {
+      const data = await fetchJson(API_LIST, { method: 'GET' });
+      items = Array.isArray(data) ? data.map(it => ({
+        _id: it._id || it.id,
+        summaryText: it.summaryText || it.summary || it.text || '',
+        originalText: it.originalText || it.original || '',
+        mode: it.mode || '',
+        createdAt: it.createdAt || it.ts || new Date().toISOString(),
+      })) : [];
+      markPinsOnItems();
+      filtered = items.slice();
+      sortPinnedFirst();
+      renderList();
+    } catch (err) {
+      console.error('failed to load history', err);
+      cardsWrap.innerHTML = '<div class="p-4 text-red-500">Failed to load history (check server API).</div>';
+    }
+  }
+
+  // Wire controls
+  function wire() {
+    if (searchBox) searchBox.addEventListener('input', scheduleFilter);
+    if (mFilterMode) mFilterMode.addEventListener('change', scheduleFilter);
+    if (filterMode) filterMode.addEventListener('change', scheduleFilter);
+    if (exportBtn) exportBtn.addEventListener('click', doExport);
+    if (deleteBtn) deleteBtn.addEventListener('click', doBulkDelete);
+    if (selectModeToggle) selectModeToggle.addEventListener('change', (e) => {
+      multiSelect = !!e.target.checked;
+      selectedIds.clear();
+      renderList();
+    });
+    if (clearBtn) clearBtn.addEventListener('click', async () => {
+      if (!confirm('Clear all server-side summaries?')) return;
+      try {
+        await Promise.all(items.map(it => fetchJson(API_DELETE(it._id || it.id), { method: 'DELETE' })));
+        toast('Cleared all');
+        await loadAndFilter();
+      } catch (err) { console.error(err); toast('Clear failed'); }
+    });
+
+    // keyboard: Esc closes inspector
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && inspector) inspector.classList.add('hidden');
+    });
+  }
+
+  // Expose tiny helpers
+  window.readhub = window.readhub || {};
+  window.readhub.reloadHistory = loadAndFilter;
+  window.readhub.togglePinLocal = togglePinLocal;
+
+  // Init
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadAndFilter();
+    wire();
+  });
+
+})();
+</script>

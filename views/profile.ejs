@@ -1,0 +1,190 @@
+<%- include('partials/head', { title: 'Profile' }) %>
+<%- include('partials/nav', { user }) %>
+
+<main class="max-w-5xl mx-auto px-6 py-12">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- LEFT: Profile card -->
+    <div class="card p-6 rounded-soft border">
+      <div class="flex items-center gap-4">
+        <% if (user && user.profileImageURL) { %>
+          <img src="<%= user.profileImageURL %>" alt="avatar" class="w-20 h-20 rounded-full border object-cover" />
+        <% } else if (user && user.fullname) { %>
+          <% var initials = (user.fullname || '').split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase(); %>
+          <div class="w-20 h-20 rounded-full flex items-center justify-center bg-gray-100 text-xl font-semibold border"><%= initials %></div>
+        <% } else { %>
+          <img src="/images/defaultuser.webp" class="w-20 h-20 rounded-full border object-cover" />
+        <% } %>
+
+        <div class="flex-1">
+          <div class="flex items-center gap-3">
+            <h2 class="text-xl font-semibold"><%= user?.fullname || 'User' %></h2>
+            <% if (user && user.isSubscriber) { %>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-300">PRO</span>
+            <% } %>
+          </div>
+          <div class="muted text-sm"><%= user?.email || '—' %></div>
+          <div class="mt-3 text-sm muted">
+            Joined: <strong><%= user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—' %></strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 grid grid-cols-2 gap-3">
+        <div class="p-3 rounded border text-center">
+          <div class="text-2xl font-bold"><%= user?.stats?.summariesCount || 0 %></div>
+          <div class="muted text-sm">Summaries</div>
+        </div>
+        <div class="p-3 rounded border text-center">
+          <div class="text-2xl font-bold"><%= user?.stats?.wordsSummarized || 0 %></div>
+          <div class="muted text-sm">Words summarized</div>
+        </div>
+      </div>
+
+      <!-- Usage Limit Box -->
+      <div class="mt-6 p-4 rounded border">
+        <% if (user && user.isSubscriber) { %>
+          <div class="font-medium">Usage</div>
+          <div class="muted text-sm">Unlimited summaries · Priority processing · Higher token limits</div>
+        <% } else { %>
+          <div class="font-medium">Free quota</div>
+          <div class="mt-2 grid grid-cols-1 gap-2 text-sm">
+            <div class="flex justify-between">
+              <span>Daily summaries left</span>
+              <span><strong><%= typeof user?.quota?.dailyLeft !== 'undefined' ? user.quota.dailyLeft : 5 %></strong></span>
+            </div>
+            <div class="flex justify-between">
+              <span>Characters left</span>
+              <span><strong><%= typeof user?.quota?.charsLeft !== 'undefined' ? user.quota.charsLeft : 20000 %></strong></span>
+            </div>
+            <div class="flex justify-between muted text-xs">
+              <span>Resets</span>
+              <span><%= user?.quota?.resetTime ? new Date(user.quota.resetTime).toLocaleString() : 'Daily' %></span>
+            </div>
+          </div>
+          <div class="mt-3 text-sm">
+            <a href="/pricing" class="btn-accent px-4 py-2 rounded">Upgrade for unlimited</a>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Account actions -->
+      <div class="mt-6 space-y-2">
+        <a href="/profile/edit" class="block px-4 py-2 rounded border text-sm">Edit profile</a>
+        <form action="/auth/logout" method="POST">
+          <button class="w-full text-left px-4 py-2 rounded border text-sm">Logout</button>
+        </form>
+        <form action="/account/delete" method="POST" onsubmit="return confirm('Delete account? This is permanent.');">
+          <button class="w-full text-left px-4 py-2 rounded border text-sm text-red-600">Delete account</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MIDDLE: History / Activity -->
+    <div class="lg:col-span-2 space-y-6">
+      <div class="card p-4 rounded-soft border">
+        <div class="flex items-center justify-between">
+          <h3 class="font-semibold">Summary history</h3>
+          <div class="muted text-sm">Total: <strong><%= (user?.history || []).length %></strong></div>
+        </div>
+
+        <div class="mt-4 space-y-3">
+          <% if (user && user.history && user.history.length) { %>
+            <% user.history.forEach(function(item){ %>
+              <div class="border rounded p-3 flex items-start justify-between">
+                <div class="flex-1">
+                  <div class="font-medium"><%= item.title || (item.text && item.text.slice(0,80) + '...') || 'Untitled' %></div>
+                  <div class="muted text-sm">Created: <%= new Date(item.createdAt).toLocaleString() %></div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <a href="/summary/<%= item._id %>" class="px-3 py-1 rounded border text-sm">View</a>
+                  <form action="/summary/<%= item._id %>/delete" method="POST" onsubmit="return confirm('Delete this summary?');">
+                    <button class="px-3 py-1 rounded border text-sm text-red-600">Delete</button>
+                  </form>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div class="p-4 muted text-sm">No summaries yet. Use the <a href="/" class="underline">home</a> page to create your first one.</div>
+          <% } %>
+        </div>
+
+        <div class="mt-4 text-right">
+          <a href="/history" class="text-sm underline">View full history</a>
+        </div>
+      </div>
+
+      <!-- Pro-only workspace preview -->
+      <div class="card p-4 rounded-soft border">
+        <div class="flex items-center justify-between">
+          <h3 class="font-semibold">AI Workspace</h3>
+          <% if (!user || !user.isSubscriber) { %>
+            <a href="/pricing" class="text-sm btn-accent px-3 py-1 rounded">Upgrade</a>
+          <% } %>
+        </div>
+
+        <% if (user && user.isSubscriber) { %>
+          <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="/workspace/projects" class="p-3 border rounded text-sm text-center">Saved projects<br/><span class="muted text-xs">(<%= user?.projects?.length || 0 %>)</span></a>
+            <a href="/workspace/multi" class="p-3 border rounded text-sm text-center">Multi-doc summaries</a>
+            <a href="/workspace/longform" class="p-3 border rounded text-sm text-center">Long-form & rewrite tools</a>
+          </div>
+
+          <div class="mt-4 text-sm muted">Files uploaded: <strong><%= user?.uploads?.length || 0 %></strong></div>
+
+        <% } else { %>
+          <div class="mt-3 muted text-sm">Pro features include multi-document summaries, long-form tools, rewrite modes, and file upload history.</div>
+        <% } %>
+      </div>
+
+      <!-- Pro features expanded (billing, devices) -->
+      <% if (user && user.isSubscriber) { %>
+        <div class="card p-4 rounded-soft border">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold">Account & Billing</h3>
+            <div class="muted text-sm">Plan: <strong><%= user.subscription?.planName || 'Pro' %></strong></div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <div class="p-3 border rounded">
+              <div class="muted text-xs">Next renewal</div>
+              <div class="font-medium"><%= user.subscription?.renewalDate ? new Date(user.subscription.renewalDate).toLocaleDateString() : '—' %></div>
+            </div>
+            <div class="p-3 border rounded">
+              <div class="muted text-xs">Invoices</div>
+              <div class="font-medium"><a href="/subscription/invoices" class="underline">Download</a></div>
+            </div>
+            <div class="p-3 border rounded">
+              <div class="muted text-xs">Manage</div>
+              <div class="font-medium"><a href="/subscription/manage" class="underline">Open</a></div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <h4 class="font-medium">Devices & sessions</h4>
+            <div class="mt-2 space-y-2 text-sm">
+              <% (user.devices || []).slice(0,5).forEach(function(d){ %>
+                <div class="flex items-center justify-between border rounded p-2">
+                  <div>
+                    <div class="font-medium"><%= d.name %></div>
+                    <div class="muted text-xs"><%= d.lastSeen ? new Date(d.lastSeen).toLocaleString() : '' %></div>
+                  </div>
+                  <form action="/session/<%= d.id %>/revoke" method="POST">
+                    <button class="px-2 py-1 text-sm rounded border">Kick</button>
+                  </form>
+                </div>
+              <% }) %>
+              <% if (!(user.devices || []).length) { %>
+                <div class="muted text-sm">No devices recorded.</div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+    </div>
+  </div>
+</main>
+
+<%- include('partials/footer') %>
+
+<%- include('partials/scripts') %>

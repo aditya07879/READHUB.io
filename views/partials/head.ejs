@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title><%= typeof title !== 'undefined' ? title + ' • ReadHub' : 'ReadHub' %></title>
+
+  <!-- Early theme init: prevents flash-of-incorrect-theme -->
+  <script>
+    (function () {
+      try {
+        var saved = null;
+        try { saved = localStorage.getItem('readhub-dark'); } catch(e) { saved = null; }
+        var useDark = saved === '1' || (saved === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (useDark) document.documentElement.classList.add('dark');
+        else document.documentElement.classList.remove('dark');
+      } catch (e) { /* silent */ }
+    })();
+  </script>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root{
+      --green: #74B27B;
+      --yellow: #FACF55;
+      --coral:  #E96950;
+      --cream:  #FDF6EF;
+      --muted:  #6b7280;
+      --card:   rgba(255,255,255,0.96);
+    }
+
+    html,body{height:100%}
+    body{
+      background: var(--cream);
+      color:#111827;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    .btn-brand{
+      background: linear-gradient(90deg,var(--green),var(--yellow));
+      color:#07111a;
+    }
+    .btn-accent{
+      background: linear-gradient(90deg,var(--coral),var(--yellow));
+      color:white;
+    }
+    .card{
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.06);
+    }
+    .muted{ color: var(--muted); }
+    .rounded-soft{ border-radius: 12px; }
+    .brand-green{ color: var(--green) }
+    .brand-yellow{ color: var(--yellow) }
+    .brand-coral{ color: var(--coral) }
+
+    /* Theme icon animation */
+    #theme-icon { transition: transform 0.25s ease, opacity 0.25s ease; transform-origin: center; }
+    html { transition: background-color 0.3s ease, color 0.3s ease; }
+    html.dark #theme-icon { transform: rotate(180deg); }
+
+    /* Navbar base + animations */
+    #site-header { transform: translateY(-12px); opacity: 0; height: 80px; }
+    #site-header.nav-enter { transform: translateY(0); opacity: 1; transition: transform .32s ease-out, opacity .32s ease-out; }
+    #site-header.shrink { height: 65px; box-shadow: 0 6px 20px rgba(16,24,40,0.06); transition: height .22s ease, box-shadow .22s ease, background-color .22s ease; }
+    .logo-wrap { transition: transform .15s ease-in-out, box-shadow .15s ease-in-out; }
+    .logo-wrap:hover { transform: scale(1.05); box-shadow: 0 6px 18px rgba(15,23,42,0.06); }
+    .nav-link { position: relative; display: inline-block; padding: 6px 0; transition: color .12s ease; }
+    .nav-link::after { content:""; position:absolute; left:0; bottom:-4px; height:2px; width:0; background:currentColor; transition: width .15s ease; }
+    .nav-link:hover::after { width:100%; }
+    .nav-link:hover { color: #111827; }
+    .upgrade-pill { background: linear-gradient(90deg,#a3e635,#facc15); box-shadow: 0 6px 18px rgba(164,148,23,0.08); transition: transform .18s ease, box-shadow .18s ease, background-position .4s ease; background-size:200% 100%; }
+    .upgrade-pill:hover { transform: scale(1.03); background-position:100% 0; box-shadow: 0 10px 30px rgba(164,148,23,0.12); }
+    .upgrade-pill:active { transform: scale(.97); }
+    .avatar-btn { transition: transform .12s ease, box-shadow .12s ease; border-radius:9999px; }
+    .avatar-btn:hover { transform: scale(1.05); box-shadow: 0 6px 16px rgba(17,24,39,0.08); }
+
+    @media (max-width: 767px) {
+      #main-nav { display: none !important; }
+      .brand-text { display:none; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">

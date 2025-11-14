@@ -1,0 +1,45 @@
+<%- include('partials/head') %>
+<%- include('partials/nav', { user }) %>
+
+<div class="min-h-[70vh] flex items-center justify-center px-6">
+  <form action="/auth/login" method="POST" class="w-full max-w-md card p-8">
+    <h2 class="text-2xl font-bold mb-4 text-center">Sign in</h2>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="mb-4 p-3 rounded text-center" style="background: rgba(233,105,80,0.12); color:var(--coral)">
+        <%= error %>
+      </div>
+    <% } %>
+
+    <label class="text-sm muted">Email</label>
+    <input name="email" type="email" required class="w-full p-3 rounded border mb-3" />
+
+    <label class="text-sm muted">Password</label>
+    <input name="password" type="password" required class="w-full p-3 rounded border mb-4" />
+
+    <button type="submit" class="w-full py-3 rounded-lg btn-brand">Sign In</button>
+
+    <div class="mt-4 text-center text-sm muted">or</div>
+
+    <!-- OAuth buttons -->
+    <div class="flex flex-col gap-3 mt-4">
+      <a href="/auth/google" class="flex items-center justify-center gap-2 border p-3 rounded hover:bg-gray-100">
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg" alt="Google" class="w-5 h-5" />
+        Continue with Google
+      </a>
+
+      <a href="/auth/github" class="flex items-center justify-center gap-2 border p-3 rounded hover:bg-gray-100">
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub" class="w-5 h-5" />
+        Continue with GitHub
+      </a>
+    </div>
+
+    <div class="mt-6 text-center muted text-sm">
+      No account?
+      <a href="/auth/signup" class="text-gray-800 font-medium">Create one</a>
+    </div>
+  </form>
+</div>
+
+<%- include('partials/footer') %>
+<%- include('partials/scripts') %>

@@ -1,0 +1,159 @@
+<script>
+  (function () {
+    // central place for header, nav, user menu, mobile toggle, and theme toggle
+    document.addEventListener('DOMContentLoaded', function () {
+      // ---------- Header entrance ----------
+      (function headerEnter() {
+        try {
+          var header = document.getElementById('site-header');
+          if (!header) return;
+          // small delay so the page feels polished
+          requestAnimationFrame(function () { header.classList.add('nav-enter'); });
+        } catch (e) {}
+      })();
+
+      // ---------- Shrink on scroll ----------
+      (function headerShrink() {
+        try {
+          var header = document.getElementById('site-header');
+          if (!header) return;
+          var lastScroll = window.scrollY || 0;
+          var ticking = false;
+          window.addEventListener('scroll', function () {
+            var current = window.scrollY || 0;
+            if (!ticking) {
+              window.requestAnimationFrame(function () {
+                if (current > 60 && current > lastScroll) header.classList.add('shrink');
+                else if (current < lastScroll - 10 || current <= 60) header.classList.remove('shrink');
+                lastScroll = current;
+                ticking = false;
+              });
+              ticking = true;
+            }
+          }, { passive: true });
+        } catch (e) {}
+      })();
+
+      // ---------- Mobile toggle ----------
+      (function mobileToggle() {
+        var mobileToggle = document.getElementById('mobile-toggle');
+        var mobileMenu = document.getElementById('mobile-menu');
+        if (!mobileToggle || !mobileMenu) return;
+        mobileToggle.addEventListener('click', function () {
+          var open = !mobileMenu.classList.contains('hidden');
+          if (open) {
+            mobileMenu.classList.add('hidden');
+            mobileToggle.setAttribute('aria-expanded', 'false');
+          } else {
+            mobileMenu.classList.remove('hidden');
+            mobileToggle.setAttribute('aria-expanded', 'true');
+          }
+        });
+      })();
+
+      // ---------- User menu toggle ----------
+      (function userMenuToggle() {
+        var userBtn = document.getElementById('user-menu-btn');
+        var userMenu = document.getElementById('user-menu');
+        if (!userBtn || !userMenu) return;
+        userBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var isOpen = userMenu.classList.contains('menu-open');
+          if (!isOpen) {
+            userMenu.classList.remove('hidden');
+            // small timeout to allow transition classes if added via CSS
+            void userMenu.offsetWidth;
+            userMenu.classList.add('menu-open');
+            userBtn.setAttribute('aria-expanded', 'true');
+          } else {
+            userMenu.classList.remove('menu-open');
+            setTimeout(function () { userMenu.classList.add('hidden'); }, 180);
+            userBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+
+        // close on outside click
+        document.addEventListener('click', function () {
+          if (userMenu && userMenu.classList.contains('menu-open')) {
+            userMenu.classList.remove('menu-open');
+            setTimeout(function () { userMenu.classList.add('hidden'); }, 180);
+            userBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+
+        // close on Escape
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && userMenu && userMenu.classList.contains('menu-open')) {
+            userMenu.classList.remove('menu-open');
+            setTimeout(function () { userMenu.classList.add('hidden'); }, 180);
+            userBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      })();
+
+      // ---------- THEME (dark/light) TOGGLE ----------
+      (function themeToggle() {
+        function setDarkMode(dark) {
+          if (dark) document.documentElement.classList.add('dark');
+          else document.documentElement.classList.remove('dark');
+          try { localStorage.setItem('readhub-dark', dark ? '1' : '0'); } catch (e) {}
+          var icon = document.getElementById('theme-icon');
+          if (icon) {
+            icon.innerHTML = dark
+              ? '<path d="M21.64 13a9 9 0 11-10.6-10.6 7 7 0 0010.6 10.6z"/>'
+              : '<path d="M12 2a1 1 0 011 1v2a1 1 0 11-2 0V3a1 1 0 011-1zM12 19a7 7 0 100-14 7 7 0 000 14z"/>';
+          }
+          var toggle = document.getElementById('theme-toggle');
+          if (toggle) toggle.setAttribute('aria-pressed', dark ? 'true' : 'false');
+        }
+
+        // initialize: match head.ejs logic
+        var saved = null;
+        try { saved = localStorage.getItem('readhub-dark'); } catch (e) { saved = null; }
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var initDark = saved === '1' || (saved === null && prefersDark);
+        setDarkMode(!!initDark);
+
+        // bind button
+        var toggleBtn = document.getElementById('theme-toggle');
+        if (toggleBtn) {
+          toggleBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            var isDark = document.documentElement.classList.contains('dark');
+            setDarkMode(!isDark);
+          });
+        }
+
+        // react to system change if user hasn't chosen
+        try {
+          var mq = window.matchMedia('(prefers-color-scheme: dark)');
+          mq.addEventListener && mq.addEventListener('change', function (e) {
+            try {
+              var savedLocal = localStorage.getItem('readhub-dark');
+              if (savedLocal === null) setDarkMode(e.matches);
+            } catch (err) {}
+          });
+        } catch (err) {}
+      })();
+
+      // End of DOMContentLoaded
+    });
+  })();
+
+
+  (function(){
+  const header = document.getElementById('site-header');
+  const main = document.querySelector('main');
+  if(!header || !main) return;
+  function adjustMainTop(){
+    const h = Math.ceil(header.getBoundingClientRect().height);
+    const gap = 12; // px of breathing room you want
+    main.style.paddingTop = (h + gap) + 'px';
+  }
+  window.addEventListener('resize', adjustMainTop);
+  // if mobile menu toggles header height, call adjustMainTop after it opens/closes
+  document.addEventListener('DOMContentLoaded', adjustMainTop);
+  // optional: watch for header size changes
+  new ResizeObserver(adjustMainTop).observe(header);
+})();
+</script>

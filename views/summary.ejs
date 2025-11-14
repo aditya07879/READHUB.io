@@ -1,0 +1,566 @@
+<%- include('partials/head') %>
+<%- include('partials/nav', { user }) %>
+
+<main class="max-w-6xl mx-auto px-4 py-10">
+  <!-- Top: Input + controls -->
+  <section id="hero" class="<%= (user && user.isSubscriber) ? 'bg-gradient-to-r from-emerald-50 to-white rounded-2xl shadow-lg p-6 grid grid-cols-1 lg:grid-cols-3 gap-6' : 'bg-white rounded-2xl shadow-md p-6 grid grid-cols-1 lg:grid-cols-3 gap-6' %>">
+    <div class="lg:col-span-2">
+      <label for="inputText" class="sr-only">Paste text</label>
+      <textarea id="inputText" placeholder="Paste text here or drop a file..." class="w-full min-h-[220px] border rounded-md p-4 resize-vertical focus:outline-none focus:ring" aria-label="Text input"></textarea>
+
+      <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+        <div id="hint" class="flex items-center gap-3">
+          <span id="lengthInfo">0 chars • 0 words</span>
+          <span id="longHint" class="hidden text-amber-600">Long text detected — summarization may take a few seconds.</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="clearBtn" class="px-3 py-1 rounded border">Clear</button>
+          <button id="fileToggle" class="px-3 py-1 rounded border" title="Switch to file input">📁</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls p-2 flex flex-col gap-3 items-start">
+      <label class="w-full">
+        <div class="text-sm font-medium">Summary mode</div>
+        <select id="mode" class="w-full mt-1 border rounded p-2">
+          <option value="concise">Concise</option>
+          <option value="detailed">Detailed</option>
+          <option value="bullet">Bullet points</option>
+          <option value="technical">Technical</option>
+        </select>
+      </label>
+
+      <div class="w-full flex gap-2">
+        <button id="summarizeBtn" class="<%= (user && user.isSubscriber) ? 'flex-1 px-4 py-2 rounded bg-emerald-600 text-white shadow' : 'flex-1 px-4 py-2 rounded btn-brand' %>">
+          <%= (user && user.isSubscriber) ? 'Summarize (Pro)' : 'Summarize' %>
+        </button>
+
+        <% if (user && user.isSubscriber) { %>
+          <!-- Premium quick actions -->
+          <button id="exportPdf" class="px-3 py-2 rounded border text-sm" title="Export PDF">Export PDF</button>
+          <button id="saveCloud" class="px-3 py-2 rounded border text-sm" title="Save to cloud">Save</button>
+        <% } else { %>
+          <button id="localToggle" class="px-3 py-2 rounded border" title="Client-only mode">Local</button>
+        <% } %>
+      </div>
+
+      <div class="w-full mt-2 text-xs <%= (user && user.isSubscriber) ? 'text-gray-700' : 'text-gray-500' %>">
+        <%= (user && user.isSubscriber) ? 'Pro features enabled: unlimited summaries, exports and priority processing.' : 'Drag & drop supported. Paste or drop files (.txt, .md).' %>
+      </div>
+    </div>
+  </section>
+
+  <!-- Middle: Live progress & loading state -->
+  <section id="statusBar" class="mt-6 hidden">
+    <div class="status bg-white rounded shadow p-3 flex items-center gap-4">
+      <div class="flex-1">
+        <div class="h-3 bg-gray-100 rounded overflow-hidden relative">
+          <div id="progressBar" class="absolute left-0 top-0 h-full" style="width:0%"></div>
+        </div>
+        <div class="mt-2 text-sm text-gray-600 flex items-center justify-between">
+          <div id="statusText">Reading — 0%</div>
+          <div class="flex items-center gap-3">
+            <div id="estText" class="text-xs text-gray-500">Working on it…</div>
+            <button id="cancelBtn" class="px-3 py-1 rounded border">Cancel</button>
+          </div>
+        </div>
+        <div class="mt-1 text-xs text-gray-500">Processing in your selected mode.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom: Result area (preview + tools) -->
+  <section class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left: Preview -->
+    <div class="lg:col-span-2">
+      <div class="<%= (user && user.isSubscriber) ? 'bg-white rounded-2xl shadow-lg p-6 relative ring-1 ring-emerald-50' : 'bg-white rounded-2xl shadow p-6 relative' %>">
+        <div class="flex items-start justify-between">
+          <h2 class="text-lg font-semibold">Summary Preview</h2>
+
+          <div class="flex items-center gap-2">
+            <button id="copyBtn" class="px-2 py-1 rounded border" title="Copy">Copy</button>
+            <button id="downloadBtn" class="px-2 py-1 rounded border" title="Download .txt">Download</button>
+            <button id="editToggle" class="px-2 py-1 rounded border" title="Edit">Edit</button>
+
+            <% if (user && user.isSubscriber) { %>
+              <button id="highlightToggle" class="px-2 py-1 rounded border" title="Highlight mode">Highlight</button>
+            <% } %>
+          </div>
+        </div>
+
+        <div id="preview" class="mt-4 prose max-w-none text-gray-800 min-h-[160px]">No summary yet.</div>
+
+        <div id="editorWrap" class="mt-4 hidden">
+          <div class="flex gap-2 mb-2">
+            <button class="tool px-2 py-1 rounded border" data-cmd="bold">B</button>
+            <button class="tool px-2 py-1 rounded border" data-cmd="ul">• List</button>
+            <button class="tool px-2 py-1 rounded border" data-cmd="h2">H2</button>
+            <div class="ml-auto text-xs text-gray-500" id="autosave">Autosave: saved</div>
+          </div>
+          <textarea id="editor" class="w-full min-h-[160px] border rounded p-3"></textarea>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between text-sm text-gray-600">
+          <div id="metaRow">0 words • 0 min read • Mode: —</div>
+          <div>
+            <% if (user && user.isSubscriber) { %>
+              <button id="saveLocal" class="px-3 py-1 rounded bg-emerald-600 text-white">Save</button>
+            <% } else { %>
+              <button id="saveLocal" class="px-3 py-1 rounded border">Save</button>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: History & quick actions -->
+    <aside class="bg-white rounded-2xl shadow p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold">Recent (local)</h3>
+        <button id="moreBtn" class="text-xs">More</button>
+      </div>
+
+      <ul id="historyList" class="flex flex-col gap-2 text-sm"></ul>
+
+      <div class="mt-4 flex gap-2">
+        <button id="clearHistory" class="flex-1 px-3 py-2 rounded border">Clear all</button>
+        <% if (user && user.isSubscriber) { %>
+          <button id="exportCsv" class="px-3 py-2 rounded border">Export CSV</button>
+        <% } %>
+      </div>
+    </aside>
+  </section>
+</main>
+
+<%- include('partials/footer') %>
+
+<%- include('partials/scripts') %>
+
+<script>
+// === Elements ===
+const input = document.getElementById('inputText');
+const lengthInfo = document.getElementById('lengthInfo');
+const longHint = document.getElementById('longHint');
+const summarizeBtn = document.getElementById('summarizeBtn');
+const statusBar = document.getElementById('statusBar');
+const progressBar = document.getElementById('progressBar');
+const statusText = document.getElementById('statusText');
+const cancelBtn = document.getElementById('cancelBtn');
+const preview = document.getElementById('preview');
+const modeSelect = document.getElementById('mode');
+const copyBtn = document.getElementById('copyBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const editorWrap = document.getElementById('editorWrap');
+const editor = document.getElementById('editor');
+const editToggle = document.getElementById('editToggle');
+const autosave = document.getElementById('autosave');
+const metaRow = document.getElementById('metaRow');
+const saveLocal = document.getElementById('saveLocal');
+const historyList = document.getElementById('historyList');
+const clearHistory = document.getElementById('clearHistory');
+const localToggle = document.getElementById('localToggle');
+const exportPdfBtn = document.getElementById('exportPdf');
+const saveCloudBtn = document.getElementById('saveCloud');
+const highlightToggle = document.getElementById('highlightToggle');
+const exportCsvBtn = document.getElementById('exportCsv');
+
+let running = false;
+let progress = 0;
+let progressInterval = null;
+let currentSummary = '';
+let apiAbort = null; // AbortController for API requests
+
+/* ---------- helpers ---------- */
+function updateLength() {
+  const txt = input && input.value ? input.value : '';
+  const chars = txt.length;
+  const words = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+  if (lengthInfo) lengthInfo.textContent = `${chars} chars • ${words} words`;
+  if (longHint) {
+    if (chars > 5000 || words > 1000) longHint.classList.remove('hidden');
+    else longHint.classList.add('hidden');
+  }
+}
+if (input) {
+  input.addEventListener('input', updateLength);
+  updateLength();
+}
+
+/* Naive local summarizer (fallback) */
+function simpleSummarize(text, mode) {
+  if (!text) return '';
+  const sentences = text.match(/[^.!?]+[.!?]?/g) || [text];
+  switch (mode) {
+    case 'concise': return sentences.slice(0, 2).join(' ').trim();
+    case 'detailed': return sentences.slice(0, 5).join(' ').trim();
+    case 'bullet': return sentences.slice(0, 6).map(s => '- ' + s.trim()).join('\n');
+    case 'technical': return sentences.slice(0, 4).join(' ').trim();
+    default: return sentences.slice(0,3).join(' ').trim();
+  }
+}
+
+/* Progress UI */
+function startProgress() {
+  running = true;
+  if (statusBar) statusBar.classList.remove('hidden');
+  progress = 0;
+  if (progressBar) progressBar.style.width = '0%';
+  if (statusText) statusText.textContent = 'Reading — 0%';
+  progressInterval = setInterval(() => {
+    progress = Math.min(99, progress + Math.random() * 12);
+    if (progressBar) progressBar.style.width = progress + '%';
+    if (statusText) statusText.textContent = `Reading — ${Math.floor(progress)}%`;
+  }, 300);
+}
+function stopProgress(finalPercent = 100) {
+  clearInterval(progressInterval);
+  if (progressBar) progressBar.style.width = finalPercent + '%';
+  if (statusText) statusText.textContent = 'Done';
+  setTimeout(() => { if (statusBar) statusBar.classList.add('hidden'); running = false; }, 700);
+}
+
+/* ---------- Modal: plan partial loader (appends to body) ---------- */
+async function openPlanModal() {
+  try {
+    const resp = await fetch('/plan_partial', { method: 'GET', credentials: 'same-origin' });
+    if (!resp.ok) {
+      console.warn('/plan_partial returned non-ok', resp.status);
+      return false;
+    }
+    const html = await resp.text();
+
+    let container = document.getElementById('plan-modal-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'plan-modal-container';
+      document.body.appendChild(container);
+    }
+
+    // replace content and lock scroll
+    container.innerHTML = '';
+    container.insertAdjacentHTML('beforeend', html);
+    document.body.style.overflow = 'hidden';
+
+    // wire close handlers (backdrop / close button / dismiss)
+    const overlay = container.querySelector('#limit-modal-overlay') || container.querySelector('#limit-modal-backdrop') || container.firstElementChild;
+    const backdrop = container.querySelector('#limit-modal-backdrop');
+    const closeBtn = container.querySelector('#limit-modal-close');
+    const dismissBtn = container.querySelector('#limit-modal-dismiss');
+
+    function removeModal() {
+      try { container.innerHTML = ''; } catch (e) { container.remove(); }
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', escHandler);
+    }
+
+    function escHandler(e) {
+      if (e.key === 'Escape') removeModal();
+    }
+
+    if (backdrop) backdrop.addEventListener('click', removeModal, { once: true });
+    if (closeBtn) closeBtn.addEventListener('click', removeModal, { once: true });
+    if (dismissBtn) dismissBtn.addEventListener('click', removeModal, { once: true });
+    document.addEventListener('keydown', escHandler);
+
+    // focus first actionable item
+    const firstFocusable = container.querySelector('a,button,input,textarea,[tabindex]');
+    if (firstFocusable) firstFocusable.focus();
+
+    return true;
+  } catch (e) {
+    console.error('openPlanModal failed', e);
+    return false;
+  }
+}
+
+/* ---------- summarizeViaApi (robust + checks for limit) ---------- */
+async function summarizeViaApi(text, mode='concise') {
+  // abort previous
+  if (apiAbort) { try { apiAbort.abort(); } catch(e) {} apiAbort = null; }
+  apiAbort = new AbortController();
+
+  startProgress();
+
+  try {
+    const res = await fetch('/api/summarize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ text, mode }),
+      signal: apiAbort.signal
+    });
+
+    // debug info (use DevTools console)
+    console.log('summarize: status', res.status, 'ok', res.ok);
+
+    // Prefer header flag — browsers may hide headers if not exposed; also check status 402
+    let headerVal = null;
+    try { headerVal = res.headers && res.headers.get ? res.headers.get('X-Limit-Reached') : null; } catch(e) { headerVal = null; }
+    console.log('X-Limit-Reached header:', headerVal);
+
+    if (String(headerVal) === 'true' || res.status === 402) {
+      apiAbort = null;
+      stopProgress(0);
+      await openPlanModal();
+      return;
+    }
+
+    // parse JSON safely
+    let data = null;
+    const ct = (res.headers && res.headers.get && res.headers.get('content-type')) || '';
+    if (ct.includes('application/json')) {
+      try { data = await res.json(); } catch (e) { console.warn('Failed to parse JSON', e); data = null; }
+    } else {
+      // fallback: try text -> json
+      try {
+        const txt = await res.text();
+        data = JSON.parse(txt);
+      } catch (e) {
+        data = null;
+      }
+    }
+
+    // JSON flag check
+    if (data && (data.limitReached === true || data.limit === 'reached')) {
+      apiAbort = null;
+      stopProgress(0);
+      await openPlanModal();
+      return;
+    }
+
+    if (!res.ok) {
+      stopProgress(0);
+      alert((data && data.message) || `Error summarizing (${res.status})`);
+      return;
+    }
+
+    // success
+    const summary = (data && (data.summary || data.output)) ? (data.summary || data.output) : '';
+    currentSummary = summary;
+    if (preview) preview.textContent = summary || 'No summary yet.';
+    if (editor) editor.value = summary || '';
+
+    const words = summary ? summary.split(/\s+/).filter(Boolean).length : 0;
+    const minutes = Math.max(1, Math.ceil(words / 200));
+    if (metaRow) metaRow.textContent = `${words} words • ${minutes} min read • Mode: ${mode}`;
+
+    stopProgress(100);
+    apiAbort = null;
+    return data;
+
+  } catch (err) {
+    console.error('summarizeViaApi error', err);
+    if (err && err.name === 'AbortError') {
+      if (statusText) statusText.textContent = 'Cancelled';
+      stopProgress(0);
+      return;
+    }
+
+    stopProgress(0);
+
+    // defensive: if error message mentions limit, show plan modal
+    if (err && String(err.message || '').toLowerCase().includes('limit')) {
+      await openPlanModal();
+      return;
+    }
+
+    alert('Failed to summarize.');
+  }
+}
+
+/* ---------- UI wiring: Summarize button ---------- */
+if (summarizeBtn) {
+  summarizeBtn.addEventListener('click', async () => {
+    if (running) return;
+    const text = input && input.value ? input.value.trim() : '';
+    if (!text) { alert('Paste some text first.'); return; }
+
+    const mode = modeSelect ? modeSelect.value : 'concise';
+
+    // local fallback toggle logic — respects server-side EJS check
+    const localChecked = localToggle && (localToggle.getAttribute('aria-pressed') === 'true' || localToggle.classList.contains('active'));
+    // NOTE: This EJS keeps original behavior: local is available to non-Pro users only
+    const localAllowed = <%= (user && user.isSubscriber) ? 'false' : 'true' %>;
+
+    if (localChecked && localAllowed === 'true') {
+      startProgress();
+      setTimeout(() => {
+        const summary = simpleSummarize(text, mode);
+        currentSummary = summary;
+        if (preview) preview.textContent = summary || 'No summary generated.';
+        if (editor) editor.value = summary;
+        const wordCount = summary.split(/\s+/).filter(Boolean).length;
+        if (metaRow) metaRow.textContent = `${wordCount} words • ${Math.max(1, Math.ceil(wordCount/200))} min read • Mode: ${mode}`;
+        stopProgress(100);
+      }, 300 + Math.min(1500, Math.max(150, text.length / 20)));
+      return;
+    }
+
+    // server-backed summarization
+    await summarizeViaApi(text, mode);
+  });
+}
+
+/* Cancel */
+if (cancelBtn) {
+  cancelBtn.addEventListener('click', () => {
+    if (apiAbort) { try { apiAbort.abort(); } catch(e) {} apiAbort = null; }
+    if (progressInterval) clearInterval(progressInterval);
+    running = false;
+    if (statusBar) statusBar.classList.add('hidden');
+    if (progressBar) progressBar.style.width = '0%';
+    if (statusText) statusText.textContent = 'Cancelled';
+  });
+}
+
+/* Copy / Download / Toggle editor */
+if (copyBtn) {
+  copyBtn.addEventListener('click', async () => {
+    if (!currentSummary) return;
+    try { await navigator.clipboard.writeText(currentSummary); alert('Copied!'); } catch (e) { alert('Copy failed'); }
+  });
+}
+if (downloadBtn) {
+  downloadBtn.addEventListener('click', () => {
+    if (!currentSummary) return;
+    const blob = new Blob([currentSummary], {type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'summary.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+if (editToggle) {
+  editToggle.addEventListener('click', () => {
+    const open = editorWrap && !editorWrap.classList.contains('hidden');
+    if (open) editorWrap.classList.add('hidden'); else { editorWrap.classList.remove('hidden'); if (editor) editor.focus(); }
+  });
+}
+
+/* Premium tools: Export PDF, Save to Cloud, Highlight toggle */
+if (exportPdfBtn) {
+  exportPdfBtn.addEventListener('click', () => {
+    if (!currentSummary) { alert('No summary to export'); return; }
+    const w = window.open('', '_blank');
+    w.document.write(`<pre style="font-family: system-ui; white-space: pre-wrap;">${currentSummary.replace(/</g,'&lt;')}</pre>`);
+    w.document.close();
+    w.print();
+  });
+}
+if (saveCloudBtn) {
+  saveCloudBtn.addEventListener('click', async () => {
+    if (!currentSummary) { alert('No summary to save'); return; }
+    try {
+      const res = await fetch('/api/save-summary', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ text: currentSummary, mode: modeSelect ? modeSelect.value : 'concise' })
+      });
+      const j = await res.json().catch(() => null);
+      if (j && j.ok) alert('Saved to your account');
+      else alert('Save failed');
+    } catch (e) { alert('Save failed'); }
+  });
+}
+if (highlightToggle) {
+  highlightToggle.addEventListener('click', () => {
+    if (!preview) return;
+    preview.classList.toggle('pro-highlight');
+    highlightToggle.classList.toggle('active');
+  });
+}
+if (exportCsvBtn) {
+  exportCsvBtn.addEventListener('click', () => {
+    const list = JSON.parse(localStorage.getItem('summaries_v1') || '[]');
+    const lines = ['id,ts,mode,text'];
+    list.forEach(r => {
+      const text = '"' + (r.text || '').replace(/"/g,'""') + '"';
+      lines.push(`${r.id},${r.ts},${r.mode},${text}`);
+    });
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'summaries.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+/* Editor tools */
+document.querySelectorAll('.tool').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const cmd = btn.dataset.cmd;
+    const val = editor ? editor.value : '';
+    if (cmd === 'bold') editor.value = val + '\n**bold**';
+    if (cmd === 'ul') editor.value = val + '\n- ';
+    if (cmd === 'h2') editor.value = val + '\n## ';
+    if (autosave) autosave.textContent = 'Autosave: modified';
+  });
+});
+
+/* Local history functions */
+function loadHistory() {
+  const raw = localStorage.getItem('summaries_v1');
+  return raw ? JSON.parse(raw) : [];
+}
+function saveToHistory(summary, mode) {
+  const list = loadHistory();
+  const entry = { id: Date.now(), text: summary, mode, ts: new Date().toISOString(), pinned: false };
+  list.unshift(entry);
+  localStorage.setItem('summaries_v1', JSON.stringify(list.slice(0, 50)));
+  renderHistory();
+}
+function renderHistory() {
+  const list = loadHistory();
+  if (!historyList) return;
+  historyList.innerHTML = '';
+  list.slice(0,5).forEach(it => {
+    const li = document.createElement('li');
+    li.className = 'p-2 border rounded flex items-center justify-between';
+    li.innerHTML = `<div class="flex-1 mr-3 text-xs"><div class="font-medium">${new Date(it.ts).toLocaleString()}</div><div class="truncate">${it.text.split('\n').slice(0,2).join(' ')}</div></div>`;
+    const restore = document.createElement('button'); restore.textContent = 'Restore'; restore.className = 'px-2 py-1 rounded border text-xs'; restore.onclick = () => { if (preview) preview.textContent = it.text; if (editor) editor.value = it.text; currentSummary = it.text; };
+    const pin = document.createElement('button'); pin.textContent = it.pinned ? 'Unpin' : 'Pin'; pin.className = 'px-2 py-1 rounded border text-xs'; pin.onclick = () => { it.pinned = !it.pinned; localStorage.setItem('summaries_v1', JSON.stringify(loadHistory().map(x => x.id===it.id?it:x))); renderHistory(); };
+    const del = document.createElement('button'); del.textContent = 'Delete'; del.className = 'px-2 py-1 rounded border text-xs'; del.onclick = () => { const updated = loadHistory().filter(x=>x.id!==it.id); localStorage.setItem('summaries_v1', JSON.stringify(updated)); renderHistory(); };
+    const wrap = document.createElement('div'); wrap.className='flex gap-2'; wrap.appendChild(restore); wrap.appendChild(pin); wrap.appendChild(del);
+    li.appendChild(wrap);
+    historyList.appendChild(li);
+  });
+}
+if (saveLocal) {
+  saveLocal.addEventListener('click', () => {
+    if (!currentSummary && !(editor && editor.value)) return;
+    const text = (editor && editor.value) ? editor.value : currentSummary;
+    saveToHistory(text, modeSelect ? modeSelect.value : 'concise');
+    alert('Saved to local history');
+  });
+}
+if (clearHistory) {
+  clearHistory.addEventListener('click', () => { if (confirm('Clear local history?')) { localStorage.removeItem('summaries_v1'); renderHistory(); } });
+}
+
+/* Autosave indicator */
+let autosaveTimer = null;
+if (editor) {
+  editor.addEventListener('input', () => {
+    if (autosave) autosave.textContent = 'Autosave: typing';
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(() => { if (autosave) autosave.textContent = 'Autosave: saved'; currentSummary = editor.value; }, 800);
+  });
+}
+
+/* Initial render */
+renderHistory();
+</script>
+
+<style>
+/* small premium highlight class */
+.pro-highlight { background: linear-gradient(90deg, rgba(250,250,210,0.45), rgba(255,255,255,0)); padding: 8px; border-left: 4px solid #10b981; }
+
+/* Modal container default style (just in case) */
+#plan-modal-container { position: relative; z-index: 9999; }
+</style>

@@ -1,0 +1,108 @@
+<footer class="mt-auto bg-white text-gray-700 border-t transition-colors duration-300 dark:bg-gray-900 dark:text-gray-300">
+  <div class="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+    <!-- Column 1: Logo + Brand -->
+    <div class="space-y-4">
+      <div class="flex items-center gap-3">
+        <svg class="w-10 h-10" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="48" height="48" rx="10" fill="#4F46E5" />
+          <path d="M14 30c6-8 20-8 24-4" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <div>
+          <div class="font-semibold text-lg">ReadHub</div>
+          <div class="text-xs text-gray-500 dark:text-gray-400">
+            AI-powered tool that turns documents into clear, structured notes — fast and simple for students & professionals.
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 mt-3">
+        <a href="#" aria-label="LinkedIn" class="inline-flex items-center justify-center w-9 h-9 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700">
+          <i class="fa-brands fa-linkedin-in text-gray-700 dark:text-gray-200"></i>
+        </a>
+        <a href="#" aria-label="Twitter" class="inline-flex items-center justify-center w-9 h-9 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700">
+          <i class="fa-brands fa-x-twitter text-gray-700 dark:text-gray-200"></i>
+        </a>
+        <a href="#" aria-label="Instagram" class="inline-flex items-center justify-center w-9 h-9 rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700">
+          <i class="fa-brands fa-instagram text-gray-700 dark:text-gray-200"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Column 2: Product -->
+    <div>
+      <h5 class="text-sm font-semibold mb-3">Product</h5>
+      <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+        <li><a href="/summary" class="hover:text-gray-900 dark:hover:text-white">AI Summary</a></li>
+        <li><a href="/qa" class="hover:text-gray-900 dark:hover:text-white">Q&amp;A Generator</a></li>
+        <li><a href="/pdf-image" class="hover:text-gray-900 dark:hover:text-white">PDF & Image Summary</a></li>
+        <li><a href="/templates" class="hover:text-gray-900 dark:hover:text-white">Notes Templates</a></li>
+        <li><a href="/flashcards" class="hover:text-gray-900 dark:hover:text-white">Flashcards</a></li>
+      </ul>
+    </div>
+
+    <!-- Column 3: Company -->
+    <div>
+      <h5 class="text-sm font-semibold mb-3">Company</h5>
+      <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+        <li><a href="/about" class="hover:text-gray-900 dark:hover:text-white">About Us</a></li>
+        <li><a href="/pricing" class="hover:text-gray-900 dark:hover:text-white">Pricing</a></li>
+        <li><a href="/blog" class="hover:text-gray-900 dark:hover:text-white">Blog</a></li>
+        <li><a href="/careers" class="hover:text-gray-900 dark:hover:text-white">Careers</a></li>
+        <li><a href="/contact" class="hover:text-gray-900 dark:hover:text-white">Contact</a></li>
+      </ul>
+    </div>
+
+    <!-- Column 4: Support + Newsletter + Controls -->
+    <div>
+      <h5 class="text-sm font-semibold mb-3">Support</h5>
+      <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2 mb-4">
+        <li><a href="/help" class="hover:text-gray-900 dark:hover:text-white">Help Center</a></li>
+        <li><a href="/faq" class="hover:text-gray-900 dark:hover:text-white">FAQs</a></li>
+        <li><a href="/status" class="hover:text-gray-900 dark:hover:text-white">Status Page</a></li>
+        <li><a href="/privacy" class="hover:text-gray-900 dark:hover:text-white">Privacy Policy</a></li>
+      </ul>
+
+      <div class="mt-2">
+        <form id="footer-newsletter" action="/subscribe" method="POST" class="flex gap-2">
+          <input name="email" type="email" required placeholder="you@domain.com"
+            class="flex-1 p-2 rounded border text-sm bg-transparent dark:border-gray-700 dark:text-gray-200" />
+          <button class="px-3 py-2 rounded btn-brand text-sm">Subscribe</button>
+        </form>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Get updates, new features & discounts — no spam.</p>
+      </div>
+
+      <div class="mt-4 flex items-center gap-3 text-sm">
+        <label for="lang" class="text-gray-600 dark:text-gray-400">Language</label>
+        <select id="lang" class="p-2 rounded border text-sm bg-transparent dark:border-gray-700 dark:text-gray-200">
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="es">Spanish</option>
+        </select>
+
+        <button id="theme-toggle" aria-label="Toggle theme" title="Toggle light / dark"
+          class="ml-auto p-2 rounded-md border dark:border-gray-700 flex items-center justify-center">
+          <svg id="theme-icon" class="w-4 h-4 transition-transform duration-300" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2a1 1 0 011 1v2a1 1 0 11-2 0V3a1 1 0 011-1zM12 19a7 7 0 100-14 7 7 0 000 14z" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="mt-4 text-sm">
+        <div class="font-medium">Contact</div>
+        <a href="mailto:support@readhub.example" class="text-gray-500 dark:text-gray-400 hover:underline">support@readhub.example</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="border-t border-gray-200 dark:border-gray-700"></div>
+
+  <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+    <div>© <%= new Date().getFullYear() %> ReadHub. All rights reserved.</div>
+    <div class="mt-2 sm:mt-0 flex items-center gap-4">
+      <span>Made with ❤️ in India</span>
+      <span class="hidden sm:block">•</span>
+      <span class="hidden sm:block">Powered by AI</span>
+    </div>
+  </div>
+</footer>
